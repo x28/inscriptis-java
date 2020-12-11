@@ -1,3 +1,5 @@
+[![javadoc](https://javadoc.io/badge2/ch.x28.inscriptis/inscriptis/javadoc.svg)](https://javadoc.io/doc/ch.x28.inscriptis/inscriptis)
+
 # inscriptis - HTML to text conversion library for Java
 
 A Java-based HTML to text conversion library with support for nested tables and a subset of CSS. Please take a look at the [Rendering document](https://github.com/weblyzard/inscriptis/blob/master/RENDERING.md) for a demonstration of Inscriptis conversion quality.
