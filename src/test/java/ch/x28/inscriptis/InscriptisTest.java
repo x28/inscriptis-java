@@ -72,6 +72,7 @@ public class InscriptisTest {
 
 	}
 
+	@Test
 	public void testBr() {
 
 		//given
