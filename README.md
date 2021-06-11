@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/x28/inscriptis-java.svg?branch=master)](https://travis-ci.org/x28/inscriptis-java)
+[![Maven Build](https://github.com/x28/inscriptis-java/actions/workflows/maven-build.yml/badge.svg)](https://github.com/x28/inscriptis-java/actions/workflows/maven-build.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/ch.x28.inscriptis/inscriptis/badge.svg)](https://maven-badges.herokuapp.com/maven-central/ch.x28.inscriptis/inscriptis)
 [![javadoc](https://javadoc.io/badge2/ch.x28.inscriptis/inscriptis/javadoc.svg)](https://javadoc.io/doc/ch.x28.inscriptis/inscriptis)
 
