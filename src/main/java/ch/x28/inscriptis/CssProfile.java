@@ -15,99 +15,140 @@
  */
 package ch.x28.inscriptis;
 
+import static ch.x28.inscriptis.HtmlProperties.Display.*;
+import static ch.x28.inscriptis.HtmlProperties.WhiteSpace.*;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import ch.x28.inscriptis.HtmlProperties.Display;
-import ch.x28.inscriptis.HtmlProperties.WhiteSpace;
 
 /**
  * Standard CSS profiles shipped with Inscriptis.
  *
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 public class CssProfile {
 
 	/**
 	 * This profile corresponds to the defaults used by Firefox
 	 */
-	public static CssProfile STRICT;
+	public static final CssProfile STRICT;
 	/**
 	 * This profile is more suited for text analytics, since it ensures that whitespaces are inserted between
 	 * {@code span} and {@code div} elements preventing cases where two words stick together.
 	 */
-	public static CssProfile RELAXED;
+	public static final CssProfile RELAXED;
 
 	static {
-		Map<String, HtmlElement> strict = new HashMap<>();
-		strict.put("body", new HtmlElement("body", Display.INLINE, WhiteSpace.NORMAL));
-		strict.put("head", new HtmlElement("head", Display.NONE));
-		strict.put("link", new HtmlElement("link", Display.NONE));
-		strict.put("meta", new HtmlElement("meta", Display.NONE));
-		strict.put("script", new HtmlElement("script", Display.NONE));
-		strict.put("title", new HtmlElement("title", Display.NONE));
-		strict.put("style", new HtmlElement("style", Display.NONE));
+		CssProfile.Builder builder = CssProfile.builder()
+			.put("body", e -> e.display(INLINE).whitespace(NORMAL))
+			.put("head", e -> e.display(NONE))
+			.put("link", e -> e.display(NONE))
+			.put("meta", e -> e.display(NONE))
+			.put("script", e -> e.display(NONE))
+			.put("title", e -> e.display(NONE))
+			.put("style", e -> e.display(NONE))
 
-		strict.put("p", new HtmlElement("p", Display.BLOCK, 1, 1));
-		strict.put("figure", new HtmlElement("figure", Display.BLOCK, 1, 1));
-		strict.put("h1", new HtmlElement("h1", Display.BLOCK, 1, 1));
-		strict.put("h2", new HtmlElement("h2", Display.BLOCK, 1, 1));
-		strict.put("h3", new HtmlElement("h3", Display.BLOCK, 1, 1));
-		strict.put("h4", new HtmlElement("h4", Display.BLOCK, 1, 1));
-		strict.put("h5", new HtmlElement("h5", Display.BLOCK, 1, 1));
-		strict.put("h6", new HtmlElement("h6", Display.BLOCK, 1, 1));
+			.put("p", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
+			.put("figure", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
+			.put("h1", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
+			.put("h2", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
+			.put("h3", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
+			.put("h4", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
+			.put("h5", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
+			.put("h6", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
 
-		strict.put("ul", new HtmlElement("ul", Display.BLOCK, 0, 0, 4));
-		strict.put("ol", new HtmlElement("ol", Display.BLOCK, 0, 0, 4));
-		strict.put("li", new HtmlElement("li", Display.BLOCK));
+			.put("ul", e -> e.display(BLOCK).marginBefore(0).marginAfter(0).padding(4))
+			.put("ol", e -> e.display(BLOCK).marginBefore(0).marginAfter(0).padding(4))
+			.put("li", e -> e.display(BLOCK))
 
-		strict.put("address", new HtmlElement("address", Display.BLOCK));
-		strict.put("article", new HtmlElement("article", Display.BLOCK));
-		strict.put("aside", new HtmlElement("aside", Display.BLOCK));
-		strict.put("div", new HtmlElement("div", Display.BLOCK));
-		strict.put("footer", new HtmlElement("footer", Display.BLOCK));
-		strict.put("header", new HtmlElement("header", Display.BLOCK));
-		strict.put("hgroup", new HtmlElement("hgroup", Display.BLOCK));
-		strict.put("layer", new HtmlElement("layer", Display.BLOCK));
-		strict.put("main", new HtmlElement("main", Display.BLOCK));
-		strict.put("nav", new HtmlElement("nav", Display.BLOCK));
-		strict.put("figcaption", new HtmlElement("figcaption", Display.BLOCK));
-		strict.put("blockquote", new HtmlElement("blockquote", Display.BLOCK));
+			.put("address", e -> e.display(BLOCK))
+			.put("article", e -> e.display(BLOCK))
+			.put("aside", e -> e.display(BLOCK))
+			.put("div", e -> e.display(BLOCK))
+			.put("footer", e -> e.display(BLOCK))
+			.put("header", e -> e.display(BLOCK))
+			.put("hgroup", e -> e.display(BLOCK))
+			.put("layer", e -> e.display(BLOCK))
+			.put("main", e -> e.display(BLOCK))
+			.put("nav", e -> e.display(BLOCK))
+			.put("figcaption", e -> e.display(BLOCK))
+			.put("blockquote", e -> e.display(BLOCK))
 
-		strict.put("q", new HtmlElement("q", "\"", "\""));
+			.put("q", e -> e.prefix("\"").suffix("\""))
 
-		// Handling of <pre>
-		strict.put("pre", new HtmlElement("pre", Display.BLOCK, WhiteSpace.PRE));
-		strict.put("xmp", new HtmlElement("xmp", Display.BLOCK, WhiteSpace.PRE));
-		strict.put("listing", new HtmlElement("listing", Display.BLOCK, WhiteSpace.PRE));
-		strict.put("plaintext", new HtmlElement("plaintext", Display.BLOCK, WhiteSpace.PRE));
+			// Handling of <pre>
+			.put("pre", e -> e.display(BLOCK).whitespace(PRE))
+			.put("xmp", e -> e.display(BLOCK).whitespace(PRE))
+			.put("listing", e -> e.display(BLOCK).whitespace(PRE))
+			.put("plaintext", e -> e.display(BLOCK).whitespace(PRE));
 
-		Map<String, HtmlElement> relaxed = new HashMap<>(strict);
-		relaxed.put("div", new HtmlElement("div", Display.BLOCK, 2));
-		relaxed.put("span", new HtmlElement("span", Display.INLINE, " ", " ", true));
+		STRICT = builder.build();
 
-		STRICT = new CssProfile(strict);
-		RELAXED = new CssProfile(relaxed);
+		builder
+			.put("div", e -> e.display(BLOCK).padding(2))
+			.put("span", e -> e.display(INLINE).prefix(" ").suffix(" ").limitWhitespaceAffixes(true));
+
+		RELAXED = builder.build();
 	}
 
-	private Map<String, HtmlElement> settings;
+	private final Map<String, HtmlElement> elements;
 
-	private CssProfile(Map<String, HtmlElement> settings) {
-		this.settings = settings;
+	public static Builder builder() {
+		return new Builder();
+	}
+
+	private CssProfile() {
+		elements = new HashMap<>();
 	}
 
 	public HtmlElement get(String tag) {
-		return settings.get(tag);
+		return elements.get(tag);
 	}
 
 	public HtmlElement getOrDefault(String tag, HtmlElement defaultElement) {
+		return elements.getOrDefault(tag, defaultElement);
+	}
 
-		HtmlElement htmlElement = settings.get(tag);
-		if (htmlElement != null) {
-			return htmlElement;
+	public static class Builder {
+
+		private Map<String, Setting> settings;
+
+		private Builder() {
+			settings = new HashMap<>();
 		}
 
-		return defaultElement;
+		public CssProfile build() {
+
+			CssProfile profile = new CssProfile();
+
+			for (Map.Entry<String, Setting> entry : settings.entrySet()) {
+				String tag = entry.getKey();
+				Setting setting = entry.getValue();
+
+				HtmlElement element = new HtmlElement();
+				setting.apply(element);
+
+				profile.elements.put(tag, element);
+			}
+
+			return profile;
+		}
+
+		public Builder put(String tag, Setting setting) {
+
+			settings.put(tag, setting);
+			return this;
+		}
+
 	}
+
+	@FunctionalInterface
+	private interface Setting {
+
+		void apply(HtmlElement element);
+
+	}
+
 }

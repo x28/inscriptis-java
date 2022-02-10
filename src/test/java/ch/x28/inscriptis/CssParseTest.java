@@ -20,10 +20,13 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import ch.x28.inscriptis.HtmlProperties.Display;
+import ch.x28.inscriptis.HtmlProperties.HorizontalAlignment;
+import ch.x28.inscriptis.HtmlProperties.VerticalAlignment;
 
 /**
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 public class CssParseTest {
 
@@ -32,9 +35,11 @@ public class CssParseTest {
 
 		// given
 		CssProfile css = CssProfile.STRICT;
+		HtmlElement htmlElement = css.get("div");
 
 		// when
-		HtmlElement htmlElement = CssParse.getStyleAttribute("padding-left: 8px; display: block", css.get("div"));
+		CssParse.attrStyle("padding-left: 8px; display: block", htmlElement);
+
 		// then
 		assertThat(htmlElement.getPadding()).isEqualTo(1);
 		assertThat(htmlElement.getDisplay()).isEqualTo(Display.BLOCK);
@@ -45,9 +50,10 @@ public class CssParseTest {
 
 		// given
 		CssProfile css = CssProfile.STRICT;
+		HtmlElement htmlElement = css.get("div");
 
 		// when
-		HtmlElement htmlElement = CssParse.getStyleAttribute("margin-top: 8em; display: inline", css.get("div"));
+		CssParse.attrStyle("margin-top: 8em; display: inline", htmlElement);
 
 		// then
 		assertThat(htmlElement.getMarginBefore()).isEqualTo(8);
@@ -55,11 +61,71 @@ public class CssParseTest {
 	}
 
 	@Test
+	public void testParseHorizontalAlign() {
+
+		// given
+		HtmlElement htmlElement = new HtmlElement();
+		String value = "center";
+
+		// when
+		CssParse.attrHorizontalAlign(value, htmlElement);
+
+		// then
+		assertThat(htmlElement.getAlign()).isEqualTo(HorizontalAlignment.CENTER);
+	}
+
+	@Test
+	public void testParseInvalidHorizontalAlign() {
+
+		// given
+		HtmlElement htmlElement = new HtmlElement();
+		htmlElement.align(HorizontalAlignment.CENTER);
+		String invalidValue = "unknown";
+
+		// when
+		CssParse.attrHorizontalAlign(invalidValue, htmlElement);
+
+		// then
+		assertThat(htmlElement.getAlign()).isEqualTo(HorizontalAlignment.CENTER);
+	}
+
+	@Test
+	public void testParseInvalidVerticalAlign() {
+
+		// given
+		HtmlElement htmlElement = new HtmlElement();
+		htmlElement.valign(VerticalAlignment.TOP);
+		String invalidValue = "unknown";
+
+		// when
+		CssParse.attrVerticalAlign(invalidValue, htmlElement);
+
+		// then
+		assertThat(htmlElement.getValign()).isEqualTo(VerticalAlignment.TOP);
+	}
+
+	@Test
+	public void testParseVerticalAlign() {
+
+		// given
+		HtmlElement htmlElement = new HtmlElement();
+		String value = "top";
+
+		// when
+		CssParse.attrVerticalAlign(value, htmlElement);
+
+		// then
+		assertThat(htmlElement.getValign()).isEqualTo(VerticalAlignment.TOP);
+	}
+
+	@Test
 	public void testStyleUnitParsing() {
 
 		// given
+		HtmlElement htmlElement = new HtmlElement();
+
 		// when
-		HtmlElement htmlElement = CssParse.getStyleAttribute("margin-top:2.666666667em;margin-bottom: 2.666666667em", new HtmlElement());
+		CssParse.attrStyle("margin-top:2.666666667em;margin-bottom: 2.666666667em", htmlElement);
 
 		// then
 		assertThat(htmlElement.getMarginBefore()).isEqualTo(3);

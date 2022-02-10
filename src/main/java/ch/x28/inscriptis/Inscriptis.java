@@ -43,6 +43,7 @@ import ch.x28.inscriptis.HtmlProperties.WhiteSpace;
  *
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 public class Inscriptis {
 
@@ -107,7 +108,7 @@ public class Inscriptis {
 		liLevel = 0;
 		lastCaption = null;
 
-		// Used if ParserConfig#displayLinks is enabled
+		// used if ParserConfig#displayLinks is enabled
 		linkTarget = "";
 
 		parseHtmlTree(document);
@@ -118,7 +119,7 @@ public class Inscriptis {
 	}
 
 	/**
-	 * Returns the text representation of the HTML content.
+	 * Return the text representation of the HTML content.
 	 *
 	 * @return the text representation of the HTML content
 	 */
@@ -131,6 +132,37 @@ public class Inscriptis {
 		return StringUtils.stripTrailing(text);
 	}
 
+	/**
+	 * Apply the attributes to the given HTML element.
+	 *
+	 * @param attributes the list of attributes
+	 * @param htmlElement the HTML element for which the attributes are parsed
+	 */
+	private HtmlElement applyAttributes(NamedNodeMap attributes, HtmlElement htmlElement) {
+
+		for (int index = 0; index < attributes.getLength(); index++) {
+			Node attribute = attributes.item(index);
+			String name = attribute.getNodeName();
+			String value = attribute.getNodeValue();
+
+			switch (name) {
+				case "style":
+					CssParse.attrStyle(value, htmlElement);
+					break;
+				case "align":
+					CssParse.attrHorizontalAlign(value, htmlElement);
+					break;
+				case "valign":
+					CssParse.attrVerticalAlign(value, htmlElement);
+					break;
+				default:
+					break;
+			}
+		}
+
+		return htmlElement;
+	}
+
 	private void endA() {
 
 		if (!linkTarget.isEmpty()) {
@@ -140,7 +172,7 @@ public class Inscriptis {
 
 	private void endOl() {
 
-		liLevel -= 1;
+		liLevel--;
 		liCounter.pop();
 	}
 
@@ -181,7 +213,7 @@ public class Inscriptis {
 	}
 
 	/**
-	 * Handels text belonging to HTML tags.
+	 * Handle text belonging to HTML tags.
 	 *
 	 * @param data the text to process.
 	 */
@@ -205,7 +237,7 @@ public class Inscriptis {
 	}
 
 	/**
-	 * Handels HTML end tags.
+	 * Handle HTML end tags.
 	 *
 	 * @param node the HTML end tag to process.
 	 */
@@ -247,19 +279,18 @@ public class Inscriptis {
 		}
 	}
 
+	/**
+	 * Handle HTML start tags.
+	 *
+	 * @param node the HTML start tag to process.
+	 */
 	private void handleStartTag(Node node) {
 
-		String tag = node.getNodeName();
-		NamedNodeMap attrs = node.getAttributes();
-
 		// use the css to handle tags known to it
-		HtmlElement curTag = currentTag.peek().getRefinedHtmlElement(
-			config.getCss().getOrDefault(tag, Inscriptis.DEFAULT_ELEMENT));
-
-		Node attrStyle = attrs.getNamedItem("style");
-		if (attrStyle != null) {
-			curTag = CssParse.getStyleAttribute(attrStyle.getNodeValue(), curTag);
-		}
+		String tag = node.getNodeName();
+		HtmlElement htmlElement = config.getCss().getOrDefault(tag, DEFAULT_ELEMENT);
+		HtmlElement curTag = currentTag.peek().getRefinedHtmlElement(htmlElement);
+		applyAttributes(node.getAttributes(), curTag);
 
 		currentTag.push(curTag);
 
@@ -400,25 +431,21 @@ public class Inscriptis {
 
 		writeLine(false);
 
-		Object bullet;
-		if (liLevel > 0) {
-			bullet = liCounter.peek();
-		} else {
-			bullet = "* ";
-		}
+		Object bullet = liLevel > 0 ? liCounter.peek() : "* ";
 
 		if (bullet instanceof Integer) {
-			int bulletNumber = (int) liCounter.pop();
+			Integer bulletNumber = (Integer) liCounter.pop();
 			liCounter.push(bulletNumber + 1);
-			currentLine.peek().setListBullet(String.format("%s. ", bulletNumber));
+			currentLine.peek().setListBullet(bulletNumber + ". ");
 		} else {
 			currentLine.peek().setListBullet(bullet.toString());
 		}
 	}
 
 	private void startOl() {
+
 		liCounter.push(1);
-		liLevel += 1;
+		liLevel++;
 	}
 
 	private void startTable() {
@@ -442,7 +469,12 @@ public class Inscriptis {
 		cleanTextLines.push(new ArrayList<>());
 		currentLine.push(new Line());
 		nextLine.push(new Line());
-		curTable.addCell(cleanTextLines.peek());
+
+		curTable.addCell(
+			cleanTextLines.peek(),
+			currentTag.peek().getAlign(),
+			currentTag.peek().getValign());
+
 		curTable.setTdOpen(true);
 	}
 
@@ -464,7 +496,7 @@ public class Inscriptis {
 
 	private void startUl() {
 
-		liLevel += 1;
+		liLevel++;
 		liCounter.push(getBullet(liLevel - 1));
 	}
 
@@ -500,4 +532,5 @@ public class Inscriptis {
 	private void writeLineVerbatim(String text) {
 		cleanTextLines.peek().add(text);
 	}
+
 }

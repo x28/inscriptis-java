@@ -18,6 +18,7 @@ package ch.x28.inscriptis;
 /**
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 class HtmlProperties {
 
@@ -25,6 +26,7 @@ class HtmlProperties {
 	 * This enum specifies whether content will be rendered as inline, block or none (i.e. not rendered).
 	 */
 	public enum Display {
+
 		INLINE(1),
 		BLOCK(2),
 		NONE(3);
@@ -38,12 +40,14 @@ class HtmlProperties {
 		public int getValue() {
 			return value;
 		}
+
 	}
 
 	/**
-	 * This enum specifies the vertical alignment.
+	 * This enum specifies the horizontal alignment.
 	 */
 	public enum HorizontalAlignment {
+
 		LEFT('<'),
 		RIGHT('>'),
 		CENTER('^');
@@ -57,6 +61,28 @@ class HtmlProperties {
 		public char getValue() {
 			return value;
 		}
+
+	}
+
+	/**
+	 * This enum specifies the vertical alignment.
+	 */
+	public enum VerticalAlignment {
+
+		TOP(1),
+		MIDDLE(2),
+		BOTTOM(3);
+
+		private final int value;
+
+		private VerticalAlignment(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return value;
+		}
+
 	}
 
 	/**
@@ -67,6 +93,7 @@ class HtmlProperties {
 	 * @PRE Sequences of whitespaces will preserved.
 	 */
 	public enum WhiteSpace {
+
 		NORMAL(1),
 		PRE(3);
 
@@ -79,6 +106,7 @@ class HtmlProperties {
 		public int getValue() {
 			return value;
 		}
+
 	}
 
 }

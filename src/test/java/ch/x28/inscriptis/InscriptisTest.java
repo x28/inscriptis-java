@@ -29,53 +29,30 @@ import org.w3c.dom.Document;
  */
 public class InscriptisTest {
 
-	/**
-	 * Converts an HTML string to text, optionally including and deduplicating image captions, displaying link targets
-	 * and using either the standard or extended indentation strategy.
-	 *
-	 * @param htmlContent the HTML string to be converted to text.
-	 * @return The text representation of the HTML content.
-	 */
-	private static String getText(String htmlContent) {
-		return getText(htmlContent, new ParserConfig());
-	}
-
-	/**
-	 * Converts an HTML string to text, optionally including and deduplicating image captions, displaying link targets
-	 * and using either the standard or extended indentation strategy.
-	 *
-	 * @param htmlContent the HTML string to be converted to text.
-	 * @param config an optional ParserConfig object.
-	 * @return The text representation of the HTML content.
-	 */
-	private static String getText(String htmlContent, ParserConfig config) {
-
-		Document document = DocumentParser.parse(htmlContent);
-		Inscriptis inscriptis = new Inscriptis(document, config);
-
-		return inscriptis.getText();
-
-	}
-
 	@Test
 	public void testBr() {
 
 		//given
-		String html = "<html><body><br>"
-			+ "first</p></body></html>";
+		String html = "<html><body><br>first</p></body></html>";
 
 		// when
+		String text = getText(html);
+
 		// then
-		assertThat(getText(html)).isEqualTo("\nfirst");
+		assertThat(text).isEqualTo("\nfirst");
 	}
 
 	@Test
 	public void testContent() {
 
 		// given
+		String html = "<html><body>first</body></html>";
+
 		// when
+		String text = getText(html);
+
 		// then
-		assertThat(getText("<html><body>first</body></html>")).isEqualTo("first");
+		assertThat(text).isEqualTo("first");
 	}
 
 	@Test
@@ -89,10 +66,10 @@ public class InscriptisTest {
 			+ "  </body>\n"
 			+ "</html>";
 
-		// when
 		ParserConfig config = new ParserConfig();
 		config.setDisplayAnchors(true);
 
+		// when
 		String text = getText(html, config);
 
 		//then
@@ -111,10 +88,10 @@ public class InscriptisTest {
 			+ "  </body>\n"
 			+ "</html>";
 
-		// when
 		ParserConfig config = new ParserConfig();
 		config.setDisplayImages(true);
 
+		// when
 		String text = getText(html, config);
 
 		//then
@@ -133,11 +110,11 @@ public class InscriptisTest {
 			+ "  </body>\n"
 			+ "</html>";
 
-		// when
 		ParserConfig config = new ParserConfig();
 		config.setDisplayImages(true);
 		config.setDeduplicateCaptions(true);
 
+		// when
 		String text = getText(html, config);
 
 		//then
@@ -156,10 +133,10 @@ public class InscriptisTest {
 			+ "  </body>\n"
 			+ "</html>";
 
-		// when
 		ParserConfig config = new ParserConfig();
 		config.setDisplayLinks(true);
 
+		// when
 		String text = getText(html, config);
 
 		//then
@@ -178,11 +155,11 @@ public class InscriptisTest {
 			+ "  </body>\n"
 			+ "</html>";
 
-		// when
 		ParserConfig config = new ParserConfig();
 		config.setDisplayLinks(true);
 		config.setDisplayAnchors(true);
 
+		// when
 		String text = getText(html, config);
 
 		//then
@@ -190,51 +167,151 @@ public class InscriptisTest {
 	}
 
 	@Test
-	public void testDivs() {
+	public void testDivs1() {
+
 		// given
+		String html = "<body>Thomas<div>Anton</div>Maria</body>";
 		ParserConfig config = new ParserConfig(CssProfile.STRICT);
 
 		// when
+		String text = getText(html, config);
+
 		// then
-		assertThat(getText("<body>Thomas<div>Anton</div>Maria</body>", config)).isEqualTo("Thomas\nAnton\nMaria");
-		assertThat(getText("<body>Thomas<div>Anna <b>läuft</b> weit weg.</div>", config)).isEqualTo("Thomas\nAnna läuft weit weg.");
-		assertThat(getText("<body>Thomas <ul><li><div>Anton</div>Maria</ul></body>", config)).isEqualTo("Thomas\n  * Anton\n    Maria");
-		assertThat(getText("<body>Thomas <ul><li>  <div>Anton</div>Maria</ul></body>", config)).isEqualTo("Thomas\n  * Anton\n    Maria");
-		assertThat(getText("<body>Thomas <ul><li> a  <div>Anton</div>Maria</ul></body>", config)).isEqualTo("Thomas\n  * a\n    Anton\n    Maria");
+		assertThat(text).isEqualTo("Thomas\nAnton\nMaria");
+	}
+
+	@Test
+	public void testDivs2() {
+
+		// given
+		String html = "<body>Thomas<div>Anna <b>läuft</b> weit weg.</div>";
+		ParserConfig config = new ParserConfig(CssProfile.STRICT);
+
+		// when
+		String text = getText(html, config);
+
+		// then
+		assertThat(text).isEqualTo("Thomas\nAnna läuft weit weg.");
+	}
+
+	@Test
+	public void testDivs3() {
+
+		// given
+		String html = "<body>Thomas <ul><li><div>Anton</div>Maria</ul></body>";
+		ParserConfig config = new ParserConfig(CssProfile.STRICT);
+
+		// when
+		String text = getText(html, config);
+
+		// then
+		assertThat(text).isEqualTo("Thomas\n  * Anton\n    Maria");
+	}
+
+	@Test
+	public void testDivs4() {
+
+		// given
+		String html = "<body>Thomas <ul><li>  <div>Anton</div>Maria</ul></body>";
+		ParserConfig config = new ParserConfig(CssProfile.STRICT);
+
+		// when
+		String text = getText(html, config);
+
+		// then
+		assertThat(text).isEqualTo("Thomas\n  * Anton\n    Maria");
+	}
+
+	@Test
+	public void testDivs5() {
+
+		// given
+		String html = "<body>Thomas <ul><li> a  <div>Anton</div>Maria</ul></body>";
+		ParserConfig config = new ParserConfig(CssProfile.STRICT);
+
+		// when
+		String text = getText(html, config);
+
+		// then
+		assertThat(text).isEqualTo("Thomas\n  * a\n    Anton\n    Maria");
 	}
 
 	@Test
 	public void testEmptyAndCorrupt() {
 
 		// given
+		String html = "test";
+
 		// when
+		String text = getText(html);
+
 		// then
-		assertThat(getText("test")).isEqualTo("test");
-		assertThat(getText("  ")).isEqualTo("");
-		assertThat(getText("")).isEqualTo("");
-		assertThat(getText("<<<")).isEqualTo("<<<"); // not equal to python version
+		assertThat(text).isEqualTo("test");
+	}
+
+	@Test
+	public void testEmptyAndCorrupt2() {
+
+		// given
+		String html = "  ";
+
+		// when
+		String text = getText(html);
+
+		// then
+		assertThat(text).isEqualTo("");
+	}
+
+	@Test
+	public void testEmptyAndCorrupt3() {
+
+		// given
+		String html = "";
+
+		// when
+		String text = getText(html);
+
+		// then
+		assertThat(text).isEqualTo("");
+	}
+
+	@Test
+	public void testEmptyAndCorrupt4() {
+
+		// given
+		String html = "<<<";
+
+		// when
+		String text = getText(html);
+
+		// then
+		assertThat(text).isEqualTo("<<<"); // not equal to python version
 	}
 
 	@Test
 	public void testForgottenTdCloseTagOneLine() {
 
 		// given
-		String html = ("<body>hallo<table><tr><td>1<td>2</tr></table>echo</body>");
+		String html = "<body>hallo<table><tr><td>1<td>2</tr></table>echo</body>";
 
 		// when
+		String text = getText(html);
+
 		// then
-		assertThat(getText(html)).isEqualTo("hallo\n1  2\necho");
+		assertThat(text).isEqualTo("hallo\n1  2\necho");
 	}
 
 	@Test
 	public void testForgottenTdCloseTagTwoLines() {
 
 		// given
-		String html = ("<body>hallo<table><tr><td>1<td>2<tr><td>3<td>4</table>echo</body>");
+		String html = "<body>hallo<table><tr><td>1<td>2<tr><td>3<td>4</table>echo</body>";
 
 		// when
+		String text = getText(html);
+
 		// then
-		assertThat(getText(html)).isEqualTo("hallo\n1  2\n3  4\necho");
+		assertThat(text).isEqualTo("hallo\n1  2\n3  4\necho");
 	}
 
 	@ParameterizedTest
@@ -246,9 +323,9 @@ public class InscriptisTest {
 		String textContent = HtmlSnippets.getTextContent(name);
 		htmlContent = "<html><body>" + htmlContent + "</body></html>";
 		textContent = StringUtils.stripTrailing(textContent);
+		ParserConfig config = new ParserConfig(CssProfile.STRICT);
 
 		// when
-		ParserConfig config = new ParserConfig(CssProfile.STRICT);
 		String result = getText(htmlContent, config);
 
 		// then
@@ -280,21 +357,26 @@ public class InscriptisTest {
 	public void testMarginBefore() {
 
 		// given
+		String html = "<html><body><p>first</p></body></html>";
+
 		// when
+		String text = getText(html);
+
 		// then
-		assertThat(getText("<html><body><p>first</p></body></html>")).isEqualTo("first");
+		assertThat(text).isEqualTo("first");
 	}
 
 	@Test
 	public void testMarginBeforeWithLinebreak() {
 
 		// given
-		String html = "<html><body>first<p>"
-			+ "second</p></body></html>";
+		String html = "<html><body>first<p>second</p></body></html>";
 
 		// when
+		String text = getText(html);
+
 		// then
-		assertThat(getText(html)).isEqualTo("first\nsecond");
+		assertThat(text).isEqualTo("first\nsecond");
 	}
 
 	/**
@@ -302,31 +384,103 @@ public class InscriptisTest {
 	 * a linebreak or space between the tags.
 	 */
 	@Test
-	public void testSuccessiveA() {
+	public void testSuccessiveAWithNewLine() {
 
 		// given
-		String htmlNoNewLine = "<html><body><a href=\"first\">first</a><a href=\"second\">second</a></body></html>";
-		String htmlWithNewLine = "<html><body><a href=\"first\">first</a>\n<a href=\"second\">second</a></body></html>";
+		String html = "<html><body><a href=\"first\">first</a>\n<a href=\"second\">second</a></body></html>";
 
 		// when
+		String text = getText(html);
+
 		// then
-		assertThat(getText(htmlNoNewLine)).isEqualTo("firstsecond");
-		assertThat(getText(htmlWithNewLine)).isEqualTo("first second");
+		assertThat(text).isEqualTo("first second");
+	}
+
+	/**
+	 * Ensures that two successive <code>&lt;a&gt;text&lt;/a&gt;</code> contain no space between each other, if there is
+	 * no linebreak or space between the tags.
+	 */
+	@Test
+	public void testSuccessiveAWithoutNewLine() {
+
+		// given
+		String html = "<html><body><a href=\"first\">first</a><a href=\"second\">second</a></body></html>";
+
+		// when
+		String text = getText(html);
+
+		// then
+		assertThat(text).isEqualTo("firstsecond");
 	}
 
 	@Test
 	public void testWhiteSpace() {
 
 		// given
+		String html = "<body><span style=\"white-space: normal\"><i>1</i>2\n3</span></body>";
 		ParserConfig config = new ParserConfig(CssProfile.STRICT);
 
 		// when
+		String text = getText(html, config);
+
 		// then
-		assertThat(getText("<body><span style=\"white-space: normal\"><i>1</i>2\n3</span></body>", config)).isEqualTo("12 3");
-		assertThat(getText("<body><span style=\"white-space: nowrap\"><i>1</i>2\n3</span></body>", config)).isEqualTo("12 3");
-		assertThat(getText("<body><span style=\"white-space: pre\"><i>1</i>2\n3</span></body>", config)).isEqualTo("12\n3");
-		assertThat(getText("<body><span style=\"white-space: pre-line\"><i>1</i>2\n3</span></body>", config)).isEqualTo("12\n3");
-		assertThat(getText("<body><span style=\"white-space: pre-wrap\"><i>1</i>2\n3</span></body>", config)).isEqualTo("12\n3");
+		assertThat(text).isEqualTo("12 3");
+	}
+
+	@Test
+	public void testWhiteSpace2() {
+
+		// given
+		String html = "<body><span style=\"white-space: nowrap\"><i>1</i>2\n3</span></body>";
+		ParserConfig config = new ParserConfig(CssProfile.STRICT);
+
+		// when
+		String text = getText(html, config);
+
+		// then
+		assertThat(text).isEqualTo("12 3");
+	}
+
+	@Test
+	public void testWhiteSpace3() {
+
+		// given
+		String html = "<body><span style=\"white-space: pre\"><i>1</i>2\n3</span></body>";
+		ParserConfig config = new ParserConfig(CssProfile.STRICT);
+
+		// when
+		String text = getText(html, config);
+
+		// then
+		assertThat(text).isEqualTo("12\n3");
+	}
+
+	@Test
+	public void testWhiteSpace4() {
+
+		// given
+		String html = "<body><span style=\"white-space: pre-line\"><i>1</i>2\n3</span></body>";
+		ParserConfig config = new ParserConfig(CssProfile.STRICT);
+
+		// when
+		String text = getText(html, config);
+
+		// then
+		assertThat(text).isEqualTo("12\n3");
+	}
+
+	@Test
+	public void testWhiteSpace5() {
+
+		// given
+		String html = "<body><span style=\"white-space: pre-wrap\"><i>1</i>2\n3</span></body>";
+		ParserConfig config = new ParserConfig(CssProfile.STRICT);
+
+		// when
+		String text = getText(html, config);
+
+		// then
+		assertThat(text).isEqualTo("12\n3");
 	}
 
 	/**
@@ -336,8 +490,39 @@ public class InscriptisTest {
 	public void testXmlDeclaration() {
 
 		// given
+		String html = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?> Hallo?>";
+
 		// when
+		String text = getText(html);
+
 		// then
-		assertThat(getText("<?xml version=\"1.0\" encoding=\"UTF-8\" ?> Hallo?>")).isEqualTo("Hallo?>");
+		assertThat(text).isEqualTo("Hallo?>");
 	}
+
+	/**
+	 * Converts an HTML string to text, optionally including and deduplicating image captions, displaying link targets
+	 * and using either the standard or extended indentation strategy.
+	 *
+	 * @param htmlContent the HTML string to be converted to text.
+	 * @return The text representation of the HTML content.
+	 */
+	private String getText(String htmlContent) {
+		return getText(htmlContent, new ParserConfig());
+	}
+
+	/**
+	 * Converts an HTML string to text, optionally including and deduplicating image captions, displaying link targets
+	 * and using either the standard or extended indentation strategy.
+	 *
+	 * @param htmlContent the HTML string to be converted to text.
+	 * @param config an optional ParserConfig object.
+	 * @return The text representation of the HTML content.
+	 */
+	private String getText(String htmlContent, ParserConfig config) {
+
+		Document document = DocumentParser.parse(htmlContent);
+		Inscriptis inscriptis = new Inscriptis(document, config);
+		return inscriptis.getText();
+	}
+
 }

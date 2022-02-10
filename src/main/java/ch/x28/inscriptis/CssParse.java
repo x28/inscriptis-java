@@ -21,6 +21,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import ch.x28.inscriptis.HtmlProperties.Display;
+import ch.x28.inscriptis.HtmlProperties.HorizontalAlignment;
+import ch.x28.inscriptis.HtmlProperties.VerticalAlignment;
 import ch.x28.inscriptis.HtmlProperties.WhiteSpace;
 
 /**
@@ -29,28 +31,81 @@ import ch.x28.inscriptis.HtmlProperties.WhiteSpace;
  *
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 class CssParse {
 
 	// used to separate value and unit from each other
-	private static Pattern RE_UNIT = Pattern.compile("([\\-0-9\\.]+)(\\w+)");
+	private static final Pattern RE_UNIT = Pattern.compile("(-?[0-9.]+)(\\w+)");
 
 	// used to validate parsed size units
-	private static List<String> CSS_RELATIVE_UNITS = Arrays.asList("em", "qem", "rem");
+	private static final List<String> CSS_RELATIVE_UNITS = Arrays.asList("em", "qem", "rem");
 
 	// used to chose over whiteSpace values
-	private static List<String> WHITE_SPACE_NORMAL = Arrays.asList("normal", "nowrap");
-	private static List<String> WHITE_SPACE_PRE = Arrays.asList("pre", "pre-line", "pre-wrap");
+	private static final List<String> WHITE_SPACE_NORMAL = Arrays.asList("normal", "nowrap");
+	private static final List<String> WHITE_SPACE_PRE = Arrays.asList("pre", "pre-line", "pre-wrap");
 
 	/**
+	 * Apply the given display value.
+	 */
+	static void attrDisplay(String value, HtmlElement htmlElement) {
+
+		if (htmlElement.getDisplay() == Display.NONE) {
+			return;
+		}
+
+		switch (value) {
+			case "block":
+				htmlElement.display(Display.BLOCK);
+				break;
+			case "none":
+				htmlElement.display(Display.NONE);
+				break;
+			default:
+				htmlElement.display(Display.INLINE);
+		}
+	}
+
+	/**
+	 * Apply the provided horizontal alignment.
+	 */
+	static void attrHorizontalAlign(String value, HtmlElement htmlElement) {
+
+		try {
+			htmlElement.align(HorizontalAlignment.valueOf(value.toUpperCase()));
+		} catch (IllegalArgumentException e) {
+			// ignore
+		}
+	}
+
+	/**
+	 * Apply the provided bottom margin.
+	 */
+	static void attrMarginBottom(String value, HtmlElement htmlElement) {
+		htmlElement.marginAfter(getEm(value));
+	}
+
+	/**
+	 * Apply the given top margin.
+	 */
+	static void attrMarginTop(String value, HtmlElement htmlElement) {
+		htmlElement.marginBefore(getEm(value));
+	}
+
+	/**
+	 * Apply the given left padding.
+	 */
+	static void attrPaddingLeft(String value, HtmlElement htmlElement) {
+		htmlElement.padding(getEm(value));
+	}
+
+	/**
+	 * Applies the provided style attributes to the given html element.
+	 *
 	 * @param styleAttribute the attribute value of the given style sheet. Example: display: none
 	 * @param htmlElement the HtmlElement to which the given style is applied.
-	 *
-	 * @return An HtmlElement that merges the given element with the style attributes specified.
 	 */
-	public static HtmlElement getStyleAttribute(String styleAttribute, HtmlElement htmlElement) {
-
-		HtmlElement customHtmlElement = htmlElement.clone();
+	static void attrStyle(String styleAttribute, HtmlElement htmlElement) {
 
 		for (String styleDirective : styleAttribute.toLowerCase().split(";")) {
 			if (!styleDirective.contains(":")) {
@@ -69,78 +124,50 @@ class CssParse {
 
 			switch (fieldName) {
 				case "display":
-					attributeDisplay(value, customHtmlElement);
+					attrDisplay(value, htmlElement);
 					break;
 				case "margin-top":
-					attributeMarginTop(value, customHtmlElement);
+					attrMarginTop(value, htmlElement);
 					break;
 				case "margin-bottom":
-					attributeMarginBottom(value, customHtmlElement);
+					attrMarginBottom(value, htmlElement);
 					break;
 				case "padding-left":
-					attributePaddingLeft(value, customHtmlElement);
+					attrPaddingLeft(value, htmlElement);
+					break;
+				case "vertical-align":
+					attrVerticalAlign(value, htmlElement);
 					break;
 				case "white-space":
-					attributeWhiteSpace(value, customHtmlElement);
+					attrWhiteSpace(value, htmlElement);
 					break;
 				default:
 					break;
 			}
 		}
-
-		return customHtmlElement;
 	}
 
 	/**
-	 * Set the display value.
+	 * Apply the given vertical alignment.
 	 */
-	private static void attributeDisplay(String value, HtmlElement htmlElement) {
+	static void attrVerticalAlign(String value, HtmlElement htmlElement) {
 
-		if (htmlElement.getDisplay() == Display.NONE)
-			return;
-
-		switch (value) {
-			case "block":
-				htmlElement.setDisplay(Display.BLOCK);
-				break;
-			case "none":
-				htmlElement.setDisplay(Display.NONE);
-				break;
-			default:
-				htmlElement.setDisplay(Display.INLINE);
+		try {
+			htmlElement.valign(VerticalAlignment.valueOf(value.toUpperCase()));
+		} catch (IllegalArgumentException e) {
+			// ignore
 		}
 	}
 
 	/**
-	 * Sets the bottom margin for the given HTML element.
+	 * Apply the given white-space value.
 	 */
-	private static void attributeMarginBottom(String value, HtmlElement htmlElement) {
-		htmlElement.setMarginAfter(getEm(value));
-	}
-
-	/**
-	 * Sets the top margin for the given HTML element.
-	 */
-	private static void attributeMarginTop(String value, HtmlElement htmlElement) {
-		htmlElement.setMarginBefore(getEm(value));
-	}
-
-	/**
-	 * Sets the left padding for the given HTML element.
-	 */
-	private static void attributePaddingLeft(String value, HtmlElement htmlElement) {
-		htmlElement.setPadding(getEm(value));
-	}
-
-	/**
-	 * Set the white-space value.
-	 */
-	private static void attributeWhiteSpace(String value, HtmlElement htmlElement) {
+	static void attrWhiteSpace(String value, HtmlElement htmlElement) {
 
 		if (WHITE_SPACE_NORMAL.contains(value)) {
-			htmlElement.setWhitespace(WhiteSpace.NORMAL);
+			htmlElement.whitespace(WhiteSpace.NORMAL);
 		} else if (WHITE_SPACE_PRE.contains(value)) {
-			htmlElement.setWhitespace(WhiteSpace.PRE);
+			htmlElement.whitespace(WhiteSpace.PRE);
 		}
 	}
 
@@ -148,7 +175,7 @@ class CssParse {
 	 * @param length the length (e.g. 2em, 2px, etc.) as specified in the CSS.
 	 * @return the length in em's.
 	 */
-	private static int getEm(String length) {
+	static int getEm(String length) {
 
 		Matcher matcher = RE_UNIT.matcher(length);
 
@@ -165,4 +192,5 @@ class CssParse {
 
 		return 0;
 	}
+
 }

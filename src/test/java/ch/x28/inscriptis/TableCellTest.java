@@ -23,43 +23,109 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import ch.x28.inscriptis.HtmlProperties.HorizontalAlignment;
+import ch.x28.inscriptis.HtmlProperties.VerticalAlignment;
 
 /**
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 public class TableCellTest {
 
 	@Test
-	public void testLeftAlign() {
+	public void testHorizontalCenterCellFormatting() {
 
 		//given
 		List<String> canvas = new ArrayList<>();
-		TableCell cell = new TableCell(canvas, HorizontalAlignment.LEFT, 16, null);
+		TableCell cell = new TableCell(canvas, HorizontalAlignment.CENTER, VerticalAlignment.TOP, 16, null);
 
 		// when
 		canvas.add("Ehre sei Gott!");
 
 		// then
-		assertThat(cell.getCellLines())
-			.first()
-			.isEqualTo("Ehre sei Gott!  ");
+		assertThat(cell.getCellLines()).containsExactly(" Ehre sei Gott! ");
 	}
 
 	@Test
-	public void testRightAlign() {
+	public void testHorizontalLeftCellFormatting() {
 
 		//given
 		List<String> canvas = new ArrayList<>();
-		TableCell cell = new TableCell(canvas, HorizontalAlignment.RIGHT, 16, null);
+		TableCell cell = new TableCell(canvas, HorizontalAlignment.LEFT, VerticalAlignment.TOP, 16, null);
 
 		// when
 		canvas.add("Ehre sei Gott!");
 
 		// then
-		assertThat(cell.getCellLines())
-			.first()
-			.isEqualTo("  Ehre sei Gott!");
+		assertThat(cell.getCellLines()).containsExactly("Ehre sei Gott!  ");
+	}
+
+	@Test
+	public void testHorizontalRightCellFormatting() {
+
+		//given
+		List<String> canvas = new ArrayList<>();
+		TableCell cell = new TableCell(canvas, HorizontalAlignment.RIGHT, VerticalAlignment.TOP, 16, null);
+
+		// when
+		canvas.add("Ehre sei Gott!");
+
+		// then
+		assertThat(cell.getCellLines()).containsExactly("  Ehre sei Gott!");
+	}
+
+	@Test
+	public void testVerticalBottomCellFormatting() {
+
+		// given
+		List<String> canvas = new ArrayList<>();
+		TableCell cell = new TableCell(canvas, HorizontalAlignment.LEFT, VerticalAlignment.BOTTOM, 16, 4);
+
+		// when
+		canvas.add("Ehre sei Gott!");
+
+		// then
+		assertThat(cell.getCellLines()).containsExactly(
+			"                ",
+			"                ",
+			"                ",
+			"Ehre sei Gott!  ");
+	}
+
+	@Test
+	public void testVerticalMiddleCellFormatting() {
+
+		// given
+		List<String> canvas = new ArrayList<>();
+		TableCell cell = new TableCell(canvas, HorizontalAlignment.LEFT, VerticalAlignment.MIDDLE, 16, 4);
+
+		// when
+		canvas.add("Ehre sei Gott!");
+
+		// then
+		assertThat(cell.getCellLines()).containsExactly(
+			"                ",
+			"Ehre sei Gott!  ",
+			"                ",
+			"                ");
+	}
+
+	@Test
+	public void testVerticalTopCellFormatting() {
+
+		// given
+		List<String> canvas = new ArrayList<>();
+		TableCell cell = new TableCell(canvas, HorizontalAlignment.LEFT, VerticalAlignment.TOP, 16, 4);
+
+		// when
+		canvas.add("Ehre sei Gott!");
+
+		// then
+		assertThat(cell.getCellLines()).containsExactly(
+			"Ehre sei Gott!  ",
+			"                ",
+			"                ",
+			"                ");
 	}
 
 }

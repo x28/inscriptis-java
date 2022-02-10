@@ -17,14 +17,17 @@ package ch.x28.inscriptis;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 import ch.x28.inscriptis.HtmlProperties.HorizontalAlignment;
+import ch.x28.inscriptis.HtmlProperties.VerticalAlignment;
 
 /**
  * An HTML table.
  *
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 class Table {
 
@@ -32,40 +35,41 @@ class Table {
 	private boolean tdOpen = false;
 
 	/**
-	 * Adds a new left aligned TableCell to the table's last row. If no row exists yet, a new row is created.
+	 * Add a new left aligned TableCell to the table's last row. If no row exists yet, a new row is created.
 	 */
 	public void addCell(List<String> canvas) {
-		addCell(canvas, HorizontalAlignment.LEFT);
+		addCell(canvas, HorizontalAlignment.LEFT, VerticalAlignment.TOP);
 	}
 
 	/**
-	 * Adds a new TableCell to the table's last row. If no row exists yet, a new row is created.
+	 * Add a new TableCell to the table's last row. If no row exists yet, a new row is created.
 	 */
-	public void addCell(List<String> canvas, HorizontalAlignment alignment) {
+	public void addCell(List<String> canvas, HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment) {
 
 		if (rows.isEmpty()) {
 			rows.add(new Row());
 		}
 
 		Row last = rows.get(rows.size() - 1);
-		last.getColumns().add(new TableCell(canvas, alignment, null, null));
+		last.getColumns().add(new TableCell(canvas, horizontalAlignment, verticalAlignment, null, null));
 	}
 
 	/**
-	 * Adds an empty Row to the table.
+	 * Add an empty Row to the table.
 	 */
 	public void addRow() {
 		rows.add(new Row());
 	}
 
 	/**
-	 * Compute and set the column width and height for all colls in the table.
+	 * Compute and set the column width and height for all columns in the table.
 	 */
-	public void computeColumnWidthAnHeight() {
+	public void computeColumnWidthAndHeight() {
 
 		// skip tables with no row
-		if (rows.isEmpty())
+		if (rows.isEmpty()) {
 			return;
+		}
 
 		// determine row height
 		for (Row row : rows) {
@@ -107,14 +111,14 @@ class Table {
 	 */
 	public String getText() {
 
-		computeColumnWidthAnHeight();
+		computeColumnWidthAndHeight();
 
-		List<String> rowContents = new ArrayList<>();
+		StringJoiner joiner = new StringJoiner("\n");
 		for (Row row : rows) {
-			rowContents.add(row.getText());
+			joiner.add(row.getText());
 		}
 
-		return String.join("\n", rowContents);
+		return joiner.toString();
 	}
 
 	public boolean isTdOpen() {

@@ -16,6 +16,8 @@
 package ch.x28.inscriptis;
 
 import ch.x28.inscriptis.HtmlProperties.Display;
+import ch.x28.inscriptis.HtmlProperties.HorizontalAlignment;
+import ch.x28.inscriptis.HtmlProperties.VerticalAlignment;
 import ch.x28.inscriptis.HtmlProperties.WhiteSpace;
 
 /**
@@ -23,6 +25,7 @@ import ch.x28.inscriptis.HtmlProperties.WhiteSpace;
  *
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 class HtmlElement {
 
@@ -59,104 +62,49 @@ class HtmlElement {
 	 */
 	private WhiteSpace whitespace = null;
 	/**
-	 * Limit printing of whitespace affixes to elements with `normal` whitepsace handling.
+	 * Limit printing of whitespace affixes to elements with `normal` whitespace handling.
 	 */
 	private boolean limitWhitespaceAffixes = false;
-
-	public HtmlElement() {
-	}
-
-	public HtmlElement(String tag) {
-		this.tag = tag;
-	}
-
-	public HtmlElement(String tag, Display display) {
-		this.tag = tag;
-		this.display = display;
-	}
-
-	public HtmlElement(String tag, Display display, int padding) {
-
-		this.tag = tag;
-		this.display = display;
-		this.padding = padding;
-	}
-
-	public HtmlElement(String tag, Display display, int marginBefore, int marginAfter) {
-		this.tag = tag;
-		this.display = display;
-		this.marginBefore = marginBefore;
-		this.marginAfter = marginAfter;
-	}
-
-	public HtmlElement(String tag, Display display, int marginBefore, int marginAfter, int padding) {
-		this.tag = tag;
-		this.display = display;
-		this.marginBefore = marginBefore;
-		this.marginAfter = marginAfter;
-		this.padding = padding;
-	}
-
-	public HtmlElement(String tag, Display display, String prefix, String suffix, boolean limitWhitespaceAffixes) {
-
-		this.tag = tag;
-		this.prefix = prefix;
-		this.suffix = suffix;
-		this.display = display;
-		this.limitWhitespaceAffixes = limitWhitespaceAffixes;
-	}
-
-	public HtmlElement(String tag, Display display, WhiteSpace whitespace) {
-		this.tag = tag;
-		this.display = display;
-		this.whitespace = whitespace;
-	}
-
-	public HtmlElement(
-		String tag,
-		Display display,
-		WhiteSpace whitespace,
-		String prefix,
-		String suffix,
-		int marginBefore,
-		int marginAfter,
-		int padding,
-		boolean limitWhitespaceAffixes) {
-
-		this.tag = tag;
-		this.prefix = prefix;
-		this.suffix = suffix;
-		this.display = display;
-		this.marginBefore = marginBefore;
-		this.marginAfter = marginAfter;
-		this.padding = padding;
-		this.whitespace = whitespace;
-		this.limitWhitespaceAffixes = limitWhitespaceAffixes;
-	}
-
-	public HtmlElement(String tag, String prefix, String suffix) {
-
-		this.tag = tag;
-		this.prefix = prefix;
-		this.suffix = suffix;
-	}
-
 	/**
-	 * @return a clone of the current HtmlElement
+	 * Horizontal Alignment.
 	 */
+	private HorizontalAlignment align = HorizontalAlignment.LEFT;
+	/**
+	 * Vertical Alignment.
+	 */
+	private VerticalAlignment valign = VerticalAlignment.MIDDLE;
+
+	public HtmlElement align(HorizontalAlignment align) {
+
+		this.align = align;
+		return this;
+	}
+
 	@Override
 	public HtmlElement clone() {
 
-		return new HtmlElement(
-			tag,
-			display,
-			whitespace,
-			prefix,
-			suffix,
-			marginBefore,
-			marginAfter,
-			padding,
-			limitWhitespaceAffixes);
+		return new HtmlElement()
+			.tag(tag)
+			.display(display)
+			.whitespace(whitespace)
+			.prefix(prefix)
+			.suffix(suffix)
+			.marginBefore(marginBefore)
+			.marginAfter(marginAfter)
+			.padding(padding)
+			.limitWhitespaceAffixes(limitWhitespaceAffixes)
+			.align(align)
+			.valign(valign);
+	}
+
+	public HtmlElement display(Display display) {
+
+		this.display = display;
+		return this;
+	}
+
+	public HorizontalAlignment getAlign() {
+		return align;
 	}
 
 	public Display getDisplay() {
@@ -185,42 +133,29 @@ class HtmlElement {
 	 */
 	public HtmlElement getRefinedHtmlElement(HtmlElement htmlElement) {
 
-		Display display = this.display == Display.NONE
-			? Display.NONE
-			: htmlElement.getDisplay();
+		HtmlElement refinedElement = htmlElement.clone();
 
-		WhiteSpace whiteSpace = null;
-		if (htmlElement.getWhitespace() != null) {
-			whiteSpace = htmlElement.getWhitespace();
-		} else if (this.getWhitespace() != null) {
-			whiteSpace = this.whitespace;
+		// inherit display:none attributes
+		if (display == Display.NONE) {
+			refinedElement.display = Display.NONE;
 		}
 
-		// do not display whitespace only affixes in Whitespace.pre areas
-		// if `limit_whitespace_affixes` is set.
-		String prefix = htmlElement.getPrefix();
-		String suffix = htmlElement.getSuffix();
+		// no whitespace set => inherit
+		if (refinedElement.whitespace == null && whitespace != null) {
+			refinedElement.whitespace = whitespace;
+		}
 
-		if (htmlElement.isLimitWhitespaceAffixes() && whiteSpace == WhiteSpace.PRE) {
-			if (StringUtils.isBlank(prefix)) {
-				prefix = "";
+		// do not display whitespace only affixes in Whitespace.PRE areas if `limitWhitespaceAffixes` is set.
+		if (refinedElement.limitWhitespaceAffixes && whitespace == WhiteSpace.PRE) {
+			if (StringUtils.isBlank(refinedElement.prefix)) {
+				refinedElement.prefix = "";
 			}
-
-			if (StringUtils.isBlank(suffix)) {
-				suffix = "";
+			if (StringUtils.isBlank(refinedElement.suffix)) {
+				refinedElement.suffix = "";
 			}
 		}
 
-		return new HtmlElement(
-			htmlElement.getTag(),
-			display,
-			whiteSpace,
-			prefix,
-			suffix,
-			htmlElement.getMarginBefore(),
-			htmlElement.getMarginAfter(),
-			htmlElement.getPadding(),
-			false);
+		return refinedElement;
 	}
 
 	public String getSuffix() {
@@ -231,6 +166,10 @@ class HtmlElement {
 		return tag;
 	}
 
+	public VerticalAlignment getValign() {
+		return valign;
+	}
+
 	public WhiteSpace getWhitespace() {
 		return whitespace;
 	}
@@ -239,40 +178,46 @@ class HtmlElement {
 		return limitWhitespaceAffixes;
 	}
 
-	public void setDisplay(Display display) {
-		this.display = display;
-	}
+	public HtmlElement limitWhitespaceAffixes(boolean limitWhitespaceAffixes) {
 
-	public void setLimitWhitespaceAffixes(boolean limitWhitespaceAffixes) {
 		this.limitWhitespaceAffixes = limitWhitespaceAffixes;
+		return this;
 	}
 
-	public void setMarginAfter(int marginAfter) {
+	public HtmlElement marginAfter(int marginAfter) {
+
 		this.marginAfter = marginAfter;
+		return this;
 	}
 
-	public void setMarginBefore(int marginBefore) {
+	public HtmlElement marginBefore(int marginBefore) {
+
 		this.marginBefore = marginBefore;
+		return this;
 	}
 
-	public void setPadding(int padding) {
+	public HtmlElement padding(int padding) {
+
 		this.padding = padding;
+		return this;
 	}
 
-	public void setPrefix(String prefix) {
+	public HtmlElement prefix(String prefix) {
+
 		this.prefix = prefix;
+		return this;
 	}
 
-	public void setSuffix(String suffix) {
+	public HtmlElement suffix(String suffix) {
+
 		this.suffix = suffix;
+		return this;
 	}
 
-	public void setTag(String tag) {
+	public HtmlElement tag(String tag) {
+
 		this.tag = tag;
-	}
-
-	public void setWhitespace(WhiteSpace whitespace) {
-		this.whitespace = whitespace;
+		return this;
 	}
 
 	@Override
@@ -285,7 +230,21 @@ class HtmlElement {
 			", marginBefore=" + marginBefore +
 			", marginAfter=" + marginAfter +
 			", padding=" + padding +
-			", limitWhitespaceAffixes=" + limitWhitespaceAffixes + "]";
+			", limitWhitespaceAffixes=" + limitWhitespaceAffixes +
+			", align=" + align +
+			", valign=" + valign + "]";
+	}
+
+	public HtmlElement valign(VerticalAlignment valign) {
+
+		this.valign = valign;
+		return this;
+	}
+
+	public HtmlElement whitespace(WhiteSpace whitespace) {
+
+		this.whitespace = whitespace;
+		return this;
 	}
 
 }

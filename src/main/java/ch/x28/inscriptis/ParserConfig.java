@@ -21,6 +21,7 @@ package ch.x28.inscriptis;
  *
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 public class ParserConfig {
 
@@ -47,8 +48,8 @@ public class ParserConfig {
 	}
 
 	/**
-	 * Returns the configured {@link CssProfile}.
-	 * 
+	 * Return the configured {@link CssProfile}.
+	 *
 	 * @return the configured {@link CssProfile}.
 	 */
 	public CssProfile getCss() {
@@ -57,7 +58,7 @@ public class ParserConfig {
 
 	/**
 	 * Whether to deduplicate captions such as image titles (many newspaper include images and video previews with
-	 * identifical titles).
+	 * identical titles).
 	 *
 	 * @return {@code true} of deduplicate captions, otherwise {@code false}.
 	 */
@@ -67,7 +68,7 @@ public class ParserConfig {
 
 	/**
 	 * Whether to display anchors (e.g. <code>[here](#here)</code>).
-	 * 
+	 *
 	 * @return {@code true} of display anchors, otherwise {@code false}.
 	 */
 	public boolean isDisplayAnchors() {
@@ -77,7 +78,7 @@ public class ParserConfig {
 	/**
 	 * Whether to include images <code>alt</code> or <code>title</code> attribute values as text. If an image has both
 	 * <code>alt</code> and <code>title</code> attribute the <code>alt</code> value will be used.
-	 * 
+	 *
 	 * @return {@code true} to include images, otherwise {@code false}.
 	 */
 	public boolean isDisplayImages() {
@@ -86,7 +87,7 @@ public class ParserConfig {
 
 	/**
 	 * Whether to display link targets (e.g. <code>[Python](https://www.python.org)</code>).
-	 * 
+	 *
 	 * @return {@code true} to display links, otherwise {@code false}
 	 */
 	public boolean isDisplayLinks() {

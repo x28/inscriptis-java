@@ -21,26 +21,36 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import ch.x28.inscriptis.HtmlProperties.HorizontalAlignment;
+import ch.x28.inscriptis.HtmlProperties.VerticalAlignment;
 
 /**
  * A single Table Cell.
  *
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 class TableCell {
 
 	private List<String> canvas;
 	private HorizontalAlignment horizontalAlignment;
+	private VerticalAlignment verticalAlignment;
 	private Integer width;
 	private Integer height;
 
 	/**
 	 * Create a new table cell with the given properties
 	 */
-	public TableCell(List<String> canvas, HorizontalAlignment horizontalAlignment, Integer width, Integer height) {
+	public TableCell(
+		List<String> canvas,
+		HorizontalAlignment horizontalAlignment,
+		VerticalAlignment verticalAlignment,
+		Integer width,
+		Integer height) {
+
 		this.canvas = canvas;
 		this.horizontalAlignment = horizontalAlignment;
+		this.verticalAlignment = verticalAlignment;
 		this.width = width;
 		this.height = height;
 	}
@@ -63,16 +73,22 @@ class TableCell {
 		this.canvas.clear();
 		this.canvas.addAll(lines);
 
-		if (this.height != null) {
+		if (this.height != null && false) {
 			for (int i = 0; i < this.height - this.canvas.size(); i++) {
 				lines.add("");
 			}
 		}
 
+		// horizontal alignment
 		if (this.width != null && this.width > 0) {
 			lines = lines.stream()
 				.map(this::alignString)
 				.collect(Collectors.toList());
+		}
+
+		// vertical alignment
+		if (this.height != null && lines.size() < this.height) {
+			alignLines(lines);
 		}
 
 		return lines;
@@ -84,6 +100,10 @@ class TableCell {
 
 	public HorizontalAlignment getHorizontalAlignment() {
 		return horizontalAlignment;
+	}
+
+	public VerticalAlignment getVerticalAlignment() {
+		return verticalAlignment;
 	}
 
 	public int getWidth() {
@@ -114,10 +134,55 @@ class TableCell {
 	}
 
 	/**
+	 * Set the vertical alignment of this table cell.
+	 *
+	 * @param valign one of <code>TOP</code>, <code>MIDDLE</code> or <code>BOTTOM</code>
+	 */
+	public void setVerticalAlignment(VerticalAlignment verticalAlignment) {
+		this.verticalAlignment = verticalAlignment;
+	}
+
+	/**
 	 * Set the width of the lines in this table cell.
 	 */
 	public void setWidth(Integer width) {
 		this.width = width;
+	}
+
+	private void alignLines(List<String> lines) {
+
+		String emptyLine = width != null ? StringUtils.repeat(" ", width) : "";
+
+		switch (verticalAlignment) {
+			case TOP: {
+				int size = height - lines.size();
+				for (int i = 0; i < size; i++) {
+					lines.add(emptyLine);
+				}
+				return;
+			}
+			case MIDDLE: {
+				int size = (height - lines.size() - 1) / 2;
+				for (int i = 0; i < size; i++) {
+					lines.add(0, emptyLine);
+				}
+				size = height - lines.size();
+				for (int i = 0; i < size; i++) {
+					lines.add(emptyLine);
+				}
+				return;
+			}
+			case BOTTOM: {
+				int size = height - lines.size();
+				for (int i = 0; i < size; i++) {
+					lines.add(0, emptyLine);
+				}
+				return;
+			}
+			default: {
+				return;
+			}
+		}
 	}
 
 	private String alignString(String str) {
@@ -133,4 +198,5 @@ class TableCell {
 				return StringUtils.padCenter(str, width);
 		}
 	}
+
 }

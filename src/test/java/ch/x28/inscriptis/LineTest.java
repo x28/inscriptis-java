@@ -22,11 +22,13 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 public class LineTest {
 
 	@Test
 	public void testGetText() {
+
 		// given
 		Line line = new Line();
 		line.addContent("Ehre sei Gott!");
@@ -39,6 +41,7 @@ public class LineTest {
 
 	@Test
 	public void testListBulletWithoutPadding() {
+
 		// given
 		Line line = new Line();
 		line.addContent("Ehre sei Gott!");
@@ -51,6 +54,7 @@ public class LineTest {
 
 	@Test
 	public void testListBulletWithPadding() {
+
 		// given
 		Line line = new Line();
 		line.addContent("Ehre sei Gott!");
@@ -64,6 +68,7 @@ public class LineTest {
 
 	@Test
 	public void testMargin() {
+
 		// given
 		Line line = new Line();
 		line.addContent("Ehre sei Gott!");
@@ -77,6 +82,7 @@ public class LineTest {
 
 	@Test
 	public void testPrefixAndSuffix() {
+
 		// given
 		Line line = new Line();
 		line.addContent("Ehre sei Gott!");

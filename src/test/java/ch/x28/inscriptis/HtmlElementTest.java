@@ -25,15 +25,27 @@ import ch.x28.inscriptis.HtmlProperties.WhiteSpace;
 /**
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 public class HtmlElementTest {
 
 	@Test
 	public void testRefinement() {
 
-		HtmlElement span = new HtmlElement("span", Display.INLINE, null, " ", " ", 0, 0, 0, true);
-		HtmlElement pre = new HtmlElement("pre", Display.BLOCK, WhiteSpace.PRE);
-		HtmlElement code = new HtmlElement("code");
+		HtmlElement span = new HtmlElement()
+			.tag("span")
+			.display(Display.INLINE)
+			.prefix(" ")
+			.suffix(" ")
+			.limitWhitespaceAffixes(true);
+
+		HtmlElement pre = new HtmlElement()
+			.tag("pre")
+			.display(Display.BLOCK)
+			.whitespace(WhiteSpace.PRE);
+
+		HtmlElement code = new HtmlElement()
+			.tag("code");
 
 		// refinement with pre and whitespaces
 		HtmlElement refined = pre.getRefinedHtmlElement(span);
@@ -46,8 +58,8 @@ public class HtmlElementTest {
 		assertThat(refined.getSuffix()).isEqualTo(" ");
 
 		// refinement with pre and non-whitespaces
-		span.setPrefix(" 1. ");
-		span.setSuffix("<");
+		span.prefix(" 1. ");
+		span.suffix("<");
 		refined = pre.getRefinedHtmlElement(span);
 		assertThat(refined.getPrefix()).isEqualTo(" 1. ");
 		assertThat(refined.getSuffix()).isEqualTo("<");
@@ -56,6 +68,36 @@ public class HtmlElementTest {
 		refined = code.getRefinedHtmlElement(span);
 		assertThat(refined.getPrefix()).isEqualTo(" 1. ");
 		assertThat(refined.getSuffix()).isEqualTo("<");
+	}
+
+	/**
+	 * Tests the string representation of an HtmlElement.
+	 */
+	@Test
+	public void testToString() {
+
+		// given
+		HtmlElement htmlElement = new HtmlElement()
+			.tag("div")
+			.display(Display.INLINE)
+			.whitespace(WhiteSpace.PRE);
+
+		// when
+		String string = htmlElement.toString();
+
+		// then
+		assertThat(string).isEqualTo("HtmlElement ["
+			+ "tag=div, "
+			+ "display=INLINE, "
+			+ "whitespace=PRE, "
+			+ "prefix=, "
+			+ "suffix=, "
+			+ "marginBefore=0, "
+			+ "marginAfter=0, "
+			+ "padding=0, "
+			+ "limitWhitespaceAffixes=false, "
+			+ "align=LEFT, "
+			+ "valign=MIDDLE]");
 	}
 
 }

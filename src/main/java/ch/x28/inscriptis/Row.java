@@ -17,12 +17,14 @@ package ch.x28.inscriptis;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 /**
  * A single row within a table.
  *
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 class Row {
 
@@ -61,7 +63,7 @@ class Row {
 	public List<String> getCellLines(int columnIndex) {
 
 		if (columnIndex >= columns.size()) {
-			return new ArrayList<String>(0);
+			return new ArrayList<>(0);
 		}
 
 		return columns.get(columnIndex).getCellLines();
@@ -77,18 +79,16 @@ class Row {
 	public String getText() {
 
 		List<List<String>> lines = new ArrayList<>();
-
 		for (TableCell column : columns) {
 			lines.add(column.getCellLines());
 		}
 
-		List<List<String>> longestZip = zipLongest(lines, " ");
-
-		List<String> rowLines = new ArrayList<>();
-		for (List<String> list : longestZip) {
-			rowLines.add(String.join("  ", list));
+		StringJoiner joiner = new StringJoiner("\n");
+		for (List<String> list : zipLongest(lines, " ")) {
+			joiner.add(String.join("  ", list));
 		}
 
-		return String.join("\n", rowLines);
+		return joiner.toString();
 	}
+
 }
