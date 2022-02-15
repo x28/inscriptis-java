@@ -21,6 +21,8 @@ import static ch.x28.inscriptis.HtmlProperties.WhiteSpace.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import ch.x28.inscriptis.model.HtmlElement;
+
 /**
  * Standard CSS profiles shipped with Inscriptis.
  *
@@ -30,19 +32,32 @@ import java.util.Map;
  */
 public class CssProfile {
 
-	/**
-	 * This profile corresponds to the defaults used by Firefox
-	 */
-	public static final CssProfile STRICT;
+	private final Map<String, Setting> settings;
+	private Map<String, HtmlElement> elements;
+
 	/**
 	 * This profile is more suited for text analytics, since it ensures that whitespaces are inserted between
 	 * {@code span} and {@code div} elements preventing cases where two words stick together.
+	 *
+	 * @return the relaxed profile
 	 */
-	public static final CssProfile RELAXED;
+	public static CssProfile relaxed() {
 
-	static {
-		CssProfile.Builder builder = CssProfile.builder()
+		return strict()
+			.put("div", e -> e.display(BLOCK).paddingInline(2))
+			.put("span", e -> e.display(INLINE).prefix(" ").suffix(" ").limitWhitespaceAffixes(true));
+	}
+
+	/**
+	 * This profile corresponds to the defaults used by Firefox.
+	 *
+	 * @return the strict profile
+	 */
+	public static CssProfile strict() {
+
+		return new CssProfile()
 			.put("body", e -> e.display(INLINE).whitespace(NORMAL))
+
 			.put("head", e -> e.display(NONE))
 			.put("link", e -> e.display(NONE))
 			.put("meta", e -> e.display(NONE))
@@ -52,6 +67,7 @@ public class CssProfile {
 
 			.put("p", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
 			.put("figure", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
+
 			.put("h1", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
 			.put("h2", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
 			.put("h3", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
@@ -59,8 +75,8 @@ public class CssProfile {
 			.put("h5", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
 			.put("h6", e -> e.display(BLOCK).marginBefore(1).marginAfter(1))
 
-			.put("ul", e -> e.display(BLOCK).marginBefore(0).marginAfter(0).padding(4))
-			.put("ol", e -> e.display(BLOCK).marginBefore(0).marginAfter(0).padding(4))
+			.put("ul", e -> e.display(BLOCK).marginBefore(0).marginAfter(0).paddingInline(4))
+			.put("ol", e -> e.display(BLOCK).marginBefore(0).marginAfter(0).paddingInline(4))
 			.put("li", e -> e.display(BLOCK))
 
 			.put("address", e -> e.display(BLOCK))
@@ -74,6 +90,7 @@ public class CssProfile {
 			.put("main", e -> e.display(BLOCK))
 			.put("nav", e -> e.display(BLOCK))
 			.put("figcaption", e -> e.display(BLOCK))
+
 			.put("blockquote", e -> e.display(BLOCK))
 
 			.put("q", e -> e.prefix("\"").suffix("\""))
@@ -83,65 +100,55 @@ public class CssProfile {
 			.put("xmp", e -> e.display(BLOCK).whitespace(PRE))
 			.put("listing", e -> e.display(BLOCK).whitespace(PRE))
 			.put("plaintext", e -> e.display(BLOCK).whitespace(PRE));
-
-		STRICT = builder.build();
-
-		builder
-			.put("div", e -> e.display(BLOCK).padding(2))
-			.put("span", e -> e.display(INLINE).prefix(" ").suffix(" ").limitWhitespaceAffixes(true));
-
-		RELAXED = builder.build();
 	}
 
-	private final Map<String, HtmlElement> elements;
-
-	public static Builder builder() {
-		return new Builder();
+	public CssProfile() {
+		this(new HashMap<>());
 	}
 
-	private CssProfile() {
-		elements = new HashMap<>();
+	private CssProfile(Map<String, Setting> settings) {
+		this.settings = settings;
 	}
 
 	public HtmlElement get(String tag) {
+
+		if (elements == null) {
+			refresh();
+		}
 		return elements.get(tag);
 	}
 
 	public HtmlElement getOrDefault(String tag, HtmlElement defaultElement) {
+
+		if (elements == null) {
+			refresh();
+		}
 		return elements.getOrDefault(tag, defaultElement);
 	}
 
-	public static class Builder {
+	public CssProfile put(String tag, Setting setting) {
 
-		private Map<String, Setting> settings;
+		settings.put(tag, setting);
 
-		private Builder() {
-			settings = new HashMap<>();
+		// reset elements since settings have changed
+		elements = null;
+
+		return this;
+	}
+
+	private void refresh() {
+
+		elements = new HashMap<>();
+
+		for (Map.Entry<String, Setting> entry : settings.entrySet()) {
+			String tag = entry.getKey();
+			Setting setting = entry.getValue();
+
+			HtmlElement element = new HtmlElement();
+			setting.apply(element);
+
+			elements.put(tag, element);
 		}
-
-		public CssProfile build() {
-
-			CssProfile profile = new CssProfile();
-
-			for (Map.Entry<String, Setting> entry : settings.entrySet()) {
-				String tag = entry.getKey();
-				Setting setting = entry.getValue();
-
-				HtmlElement element = new HtmlElement();
-				setting.apply(element);
-
-				profile.elements.put(tag, element);
-			}
-
-			return profile;
-		}
-
-		public Builder put(String tag, Setting setting) {
-
-			settings.put(tag, setting);
-			return this;
-		}
-
 	}
 
 	@FunctionalInterface

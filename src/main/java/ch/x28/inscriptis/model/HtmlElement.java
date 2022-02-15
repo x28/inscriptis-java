@@ -13,24 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.x28.inscriptis;
+package ch.x28.inscriptis.model;
 
 import ch.x28.inscriptis.HtmlProperties.Display;
 import ch.x28.inscriptis.HtmlProperties.HorizontalAlignment;
 import ch.x28.inscriptis.HtmlProperties.VerticalAlignment;
 import ch.x28.inscriptis.HtmlProperties.WhiteSpace;
+import ch.x28.inscriptis.StringUtils;
+import ch.x28.inscriptis.model.canvas.Canvas;
 
 /**
- * The HtmlElement class stores the CSS properties.
+ * Data structures for handling HTML Elements.
+ * <p>
+ * The HtmlElement class stores properties and metadata of HTML elements.
  *
  * @author Sascha Wolski
  * @author Matthias Hewelt
  * @author Manuel Schmidt
  */
-class HtmlElement {
+public class HtmlElement {
+
+	public static final HtmlElement DEFAULT = new HtmlElement();
 
 	/**
-	 * Name of the given HtmlElement
+	 * The canvas to which the HtmlElement writes its content.
+	 */
+	private Canvas canvas;
+	/**
+	 * Tag name of the given HtmlElement.
 	 */
 	private String tag = "/";
 	/**
@@ -44,7 +54,7 @@ class HtmlElement {
 	/**
 	 * {@link Display} strategy used for the content.
 	 */
-	private Display display = null;
+	private Display display = Display.INLINE;
 	/**
 	 * Vertical margin before the tag's content.
 	 */
@@ -54,25 +64,36 @@ class HtmlElement {
 	 */
 	private int marginAfter = 0;
 	/**
-	 * Horizontal padding before the tag's content.
+	 * Horizontal padding inline before the tag's content.
 	 */
-	private int padding = 0;
+	private int paddingInline = 0;
+	/**
+	 * List Bullet.
+	 */
+	private String listBullet = "";
 	/**
 	 * {@link WhiteSpace} handling strategy.
 	 */
 	private WhiteSpace whitespace = null;
 	/**
-	 * Limit printing of whitespace affixes to elements with `normal` whitespace handling.
+	 * Limit printing of whitespace affixes to elements with normal whitespace handling.
 	 */
 	private boolean limitWhitespaceAffixes = false;
 	/**
-	 * Horizontal Alignment.
+	 * The element's horizontal alignment.
 	 */
 	private HorizontalAlignment align = HorizontalAlignment.LEFT;
 	/**
-	 * Vertical Alignment.
+	 * The element's vertical alignment.
 	 */
 	private VerticalAlignment valign = VerticalAlignment.MIDDLE;
+	/**
+	 * The margin after of the previous HtmlElement.
+	 */
+	private int previousMarginAfter;
+
+	public HtmlElement() {
+	}
 
 	public HtmlElement align(HorizontalAlignment align) {
 
@@ -80,6 +101,15 @@ class HtmlElement {
 		return this;
 	}
 
+	public HtmlElement canvas(Canvas canvas) {
+
+		this.canvas = canvas;
+		return this;
+	}
+
+	/**
+	 * @return a clone of the current HtmlElement
+	 */
 	@Override
 	public HtmlElement clone() {
 
@@ -91,7 +121,8 @@ class HtmlElement {
 			.suffix(suffix)
 			.marginBefore(marginBefore)
 			.marginAfter(marginAfter)
-			.padding(padding)
+			.paddingInline(paddingInline)
+			.listBullet(listBullet)
 			.limitWhitespaceAffixes(limitWhitespaceAffixes)
 			.align(align)
 			.valign(valign);
@@ -107,8 +138,16 @@ class HtmlElement {
 		return align;
 	}
 
+	public Canvas getCanvas() {
+		return canvas;
+	}
+
 	public Display getDisplay() {
 		return display;
+	}
+
+	public String getListBullet() {
+		return listBullet;
 	}
 
 	public int getMarginAfter() {
@@ -119,43 +158,58 @@ class HtmlElement {
 		return marginBefore;
 	}
 
-	public int getPadding() {
-		return padding;
+	public int getPaddingInline() {
+		return paddingInline;
 	}
 
 	public String getPrefix() {
 		return prefix;
 	}
 
+	public int getPreviousMarginAfter() {
+		return previousMarginAfter;
+	}
+
 	/**
+	 * Computes the new HTML element based on the previous one.
+	 * <p>
+	 * <b>Adaptations:</b>
+	 * <p>
+	 * marginTop: additional margin required when considering marginBottom of the previous element
+	 *
 	 * @param htmlElement the new HtmlElement to be applied to the current context.
 	 * @return the refined element with the context applied.
 	 */
 	public HtmlElement getRefinedHtmlElement(HtmlElement htmlElement) {
 
-		HtmlElement refinedElement = htmlElement.clone();
+		htmlElement.canvas = canvas;
 
-		// inherit display:none attributes
+		// inherit `display:none` attributes and ignore further refinements
 		if (display == Display.NONE) {
-			refinedElement.display = Display.NONE;
+			htmlElement.display = Display.NONE;
+			return htmlElement;
 		}
 
 		// no whitespace set => inherit
-		if (refinedElement.whitespace == null && whitespace != null) {
-			refinedElement.whitespace = whitespace;
+		if (htmlElement.whitespace == null && whitespace != null) {
+			htmlElement.whitespace = whitespace;
 		}
 
 		// do not display whitespace only affixes in Whitespace.PRE areas if `limitWhitespaceAffixes` is set.
-		if (refinedElement.limitWhitespaceAffixes && whitespace == WhiteSpace.PRE) {
-			if (StringUtils.isBlank(refinedElement.prefix)) {
-				refinedElement.prefix = "";
+		if (htmlElement.limitWhitespaceAffixes && whitespace == WhiteSpace.PRE) {
+			if (StringUtils.isBlank(htmlElement.prefix)) {
+				htmlElement.prefix = "";
 			}
-			if (StringUtils.isBlank(refinedElement.suffix)) {
-				refinedElement.suffix = "";
+			if (StringUtils.isBlank(htmlElement.suffix)) {
+				htmlElement.suffix = "";
 			}
 		}
 
-		return refinedElement;
+		if (htmlElement.display == Display.BLOCK && display == Display.BLOCK) {
+			htmlElement.previousMarginAfter = marginAfter;
+		}
+
+		return htmlElement;
 	}
 
 	public String getSuffix() {
@@ -174,6 +228,14 @@ class HtmlElement {
 		return whitespace;
 	}
 
+	public boolean has(Display display) {
+		return this.display == display;
+	}
+
+	public boolean hasListBullet() {
+		return !listBullet.isEmpty();
+	}
+
 	public boolean isLimitWhitespaceAffixes() {
 		return limitWhitespaceAffixes;
 	}
@@ -181,6 +243,12 @@ class HtmlElement {
 	public HtmlElement limitWhitespaceAffixes(boolean limitWhitespaceAffixes) {
 
 		this.limitWhitespaceAffixes = limitWhitespaceAffixes;
+		return this;
+	}
+
+	public HtmlElement listBullet(String listBullet) {
+
+		this.listBullet = listBullet;
 		return this;
 	}
 
@@ -196,15 +264,21 @@ class HtmlElement {
 		return this;
 	}
 
-	public HtmlElement padding(int padding) {
+	public HtmlElement paddingInline(int paddingInline) {
 
-		this.padding = padding;
+		this.paddingInline = paddingInline;
 		return this;
 	}
 
 	public HtmlElement prefix(String prefix) {
 
 		this.prefix = prefix;
+		return this;
+	}
+
+	public HtmlElement previousMarginAfter(int previousMarginAfter) {
+
+		this.previousMarginAfter = previousMarginAfter;
 		return this;
 	}
 
@@ -229,7 +303,8 @@ class HtmlElement {
 			", suffix=" + suffix +
 			", marginBefore=" + marginBefore +
 			", marginAfter=" + marginAfter +
-			", padding=" + padding +
+			", paddingInline=" + paddingInline +
+			", listBullet=" + listBullet +
 			", limitWhitespaceAffixes=" + limitWhitespaceAffixes +
 			", align=" + align +
 			", valign=" + valign + "]";
@@ -245,6 +320,42 @@ class HtmlElement {
 
 		this.whitespace = whitespace;
 		return this;
+	}
+
+	/**
+	 * Write the given HTML text to the element's canvas.
+	 *
+	 * @param text the text to write
+	 */
+	public void write(String text) {
+
+		if (text == null || display == Display.NONE) {
+			return;
+		}
+
+		canvas.write(this, prefix + text + suffix, null);
+	}
+
+	/**
+	 * Write the given text with {@code Whitespace.PRE} to the canvas.
+	 *
+	 * @param text the text to write
+	 */
+	public void writeVerbatimText(String text) {
+
+		if (text == null) {
+			return;
+		}
+
+		if (display == Display.BLOCK) {
+			canvas.openBlock(this);
+		}
+
+		canvas.write(this, text, WhiteSpace.PRE);
+
+		if (display == Display.BLOCK) {
+			canvas.closeBlock(this);
+		}
 	}
 
 }

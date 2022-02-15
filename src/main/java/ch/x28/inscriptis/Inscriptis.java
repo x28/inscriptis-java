@@ -15,18 +15,19 @@
  */
 package ch.x28.inscriptis;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Stack;
-import java.util.stream.Collectors;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import ch.x28.inscriptis.HtmlProperties.Display;
-import ch.x28.inscriptis.HtmlProperties.WhiteSpace;
+import ch.x28.inscriptis.model.Attribute;
+import ch.x28.inscriptis.model.HtmlElement;
+import ch.x28.inscriptis.model.ParserConfig;
+import ch.x28.inscriptis.model.Table;
+import ch.x28.inscriptis.model.TableCell;
+import ch.x28.inscriptis.model.canvas.Canvas;
 
 /**
  * The Inscriptis class translates a W3C document to its corresponding text representation.
@@ -48,28 +49,19 @@ import ch.x28.inscriptis.HtmlProperties.WhiteSpace;
 public class Inscriptis {
 
 	private static final String[] UL_COUNTER = { "* ", "+ ", "o ", "- " };
-	private static final HtmlElement DEFAULT_ELEMENT = new HtmlElement();
 
 	private final ParserConfig config;
-
-	private final Stack<HtmlElement> currentTag;
-	private final Stack<Line> currentLine;
-	private final Stack<Line> nextLine;
-	/**
-	 * The canvases used for displaying text. cleanTextLines[0] refers to the root canvas; tables write into child
-	 * canvases that are created for every table line and merged with the root canvas at the end of a table.
-	 */
-	private Stack<List<String>> cleanTextLines;
+	private final Canvas canvas;
+	private final Stack<HtmlElement> tags;
 
 	private Stack<Table> currentTable;
 	private Stack<Object> liCounter;
-	private int liLevel = 0;
 	private String lastCaption;
 	private String linkTarget;
 
 	/**
 	 * Translates the given W3C document to its corresponding text representation by using the default
-	 * {@link ParserConfig} with {@link CssProfile#RELAXED}.
+	 * {@link ParserConfig} with {@link CssProfile#relaxed}.
 	 *
 	 * @param document the W3C document to convert
 	 */
@@ -87,153 +79,82 @@ public class Inscriptis {
 	public Inscriptis(Document document, ParserConfig config) {
 
 		this.config = config;
+		canvas = new Canvas();
 
-		currentTag = new Stack<>();
-		currentLine = new Stack<>();
-		nextLine = new Stack<>();
-
-		currentTag.push(this.config.getCss().get("body"));
-		currentLine.push(new Line());
-		nextLine.push(new Line());
-
-		// The canvases used for displaying text
-		// cleanTextLines[0] refers to the root canvas; tables write into child
-		// canvases that are created for every table line and merged with the
-		// root canvas at the end of a table
-		cleanTextLines = new Stack<>();
-		cleanTextLines.push(new ArrayList<>());
+		tags = new Stack<>();
+		tags.push(config.getCss().get("body").clone().canvas(canvas));
 
 		currentTable = new Stack<>();
 		liCounter = new Stack<>();
-		liLevel = 0;
 		lastCaption = null;
 
 		// used if ParserConfig#displayLinks is enabled
 		linkTarget = "";
 
 		parseHtmlTree(document);
-
-		if (currentLine.peek() != null) {
-			writeLine(false);
-		}
 	}
 
 	/**
-	 * Return the text representation of the HTML content.
+	 * Return the text extracted from the HTML page.
 	 *
-	 * @return the text representation of the HTML content
+	 * @return the text
 	 */
 	public String getText() {
-
-		String text = cleanTextLines.stream()
-			.flatMap(lines -> lines.stream())
-			.collect(Collectors.joining("\n"));
-
-		return StringUtils.stripTrailing(text);
-	}
-
-	/**
-	 * Apply the attributes to the given HTML element.
-	 *
-	 * @param attributes the list of attributes
-	 * @param htmlElement the HTML element for which the attributes are parsed
-	 */
-	private HtmlElement applyAttributes(NamedNodeMap attributes, HtmlElement htmlElement) {
-
-		for (int index = 0; index < attributes.getLength(); index++) {
-			Node attribute = attributes.item(index);
-			String name = attribute.getNodeName();
-			String value = attribute.getNodeValue();
-
-			switch (name) {
-				case "style":
-					CssParse.attrStyle(value, htmlElement);
-					break;
-				case "align":
-					CssParse.attrHorizontalAlign(value, htmlElement);
-					break;
-				case "valign":
-					CssParse.attrVerticalAlign(value, htmlElement);
-					break;
-				default:
-					break;
-			}
-		}
-
-		return htmlElement;
+		return canvas.getText();
 	}
 
 	private void endA() {
 
 		if (!linkTarget.isEmpty()) {
-			currentLine.peek().addContent(String.format("](%s)", linkTarget));
+			tags.peek().write(String.format("](%s)", linkTarget));
 		}
 	}
 
 	private void endOl() {
-
-		liLevel--;
 		liCounter.pop();
 	}
 
 	private void endTable() {
 
-		if (!currentTable.isEmpty() && currentTable.peek().isTdOpen()) {
+		if (!currentTable.isEmpty()) {
 			endTd();
 		}
 
-		writeLine(false);
-
 		Table table = currentTable.pop();
-		writeLineVerbatim(table.getText());
+		HtmlElement beforeTableTag = tags.get(tags.size() - 2);
+
+		HtmlElement curTag = tags.peek();
+		String outOfTableText = curTag.getCanvas().getText().trim();
+		Canvas beforeTableCanvas = beforeTableTag.getCanvas();
+
+		if (!outOfTableText.isEmpty()) {
+			beforeTableTag.write(outOfTableText);
+			beforeTableCanvas.writeNewline();
+		}
+
+		beforeTableTag.writeVerbatimText(table.getText());
+		beforeTableCanvas.flushInline();
 	}
 
 	private void endTd() {
 
-		if (!currentTable.isEmpty() && currentTable.peek().isTdOpen()) {
-			currentTable.peek().setTdOpen(false);
-			writeLine(true);
-			cleanTextLines.pop();
-			currentLine.pop();
-			nextLine.pop();
+		if (!currentTable.isEmpty()) {
+			HtmlElement curTag = tags.peek();
+			curTag.getCanvas().closeTag(curTag);
 		}
 	}
 
 	private void endUl() {
-
-		liLevel -= 1;
 		liCounter.pop();
 	}
 
 	/**
-	 * @return The bullet that corresponds to the given index.
-	 */
-	private String getBullet(int index) {
-		return UL_COUNTER[index % UL_COUNTER.length];
-	}
-
-	/**
-	 * Handle text belonging to HTML tags.
+	 * Return the bullet that corresponds to the given index.
 	 *
-	 * @param data the text to process.
+	 * @return the bullet
 	 */
-	private void handleData(String data) {
-
-		HtmlElement curTag = currentTag.peek();
-		if (curTag.getDisplay() == Display.NONE) {
-			return;
-		}
-
-		// protect pre areas
-		if (curTag.getWhitespace() == WhiteSpace.PRE) {
-			data = "\0" + data + "\0";
-		}
-
-		// add prefix, if present
-		data = curTag.getPrefix() + data + curTag.getSuffix();
-
-		// determine whether to add this content to a table column or to a standard line
-		currentLine.peek().addContent(data);
+	private String getBullet() {
+		return UL_COUNTER[liCounter.size() % UL_COUNTER.length];
 	}
 
 	/**
@@ -242,18 +163,6 @@ public class Inscriptis {
 	 * @param node the HTML end tag to process.
 	 */
 	private void handleEndTag(Node node) {
-
-		HtmlElement curTag = currentTag.pop();
-		nextLine.peek().setPadding(currentLine.peek().getPadding() - curTag.getPadding());
-		currentLine.peek().setMarginAfter(Math.max(currentLine.peek().getMarginAfter(), curTag.getMarginAfter()));
-
-		// flush text after display:block elements
-		if (curTag.getDisplay() == Display.BLOCK) {
-			// propagate the new padding to the current line, if nothing has been written
-			if (!writeLine(false)) {
-				currentLine.peek().setPadding(nextLine.peek().getPadding());
-			}
-		}
 
 		String tag = node.getNodeName();
 
@@ -288,27 +197,11 @@ public class Inscriptis {
 
 		// use the css to handle tags known to it
 		String tag = node.getNodeName();
-		HtmlElement htmlElement = config.getCss().getOrDefault(tag, DEFAULT_ELEMENT);
-		HtmlElement curTag = currentTag.peek().getRefinedHtmlElement(htmlElement);
-		applyAttributes(node.getAttributes(), curTag);
+		HtmlElement htmlElement = config.getCss().getOrDefault(tag, HtmlElement.DEFAULT).clone();
+		HtmlElement curTag = tags.peek().getRefinedHtmlElement(htmlElement).tag(tag);
+		Attribute.applyAttributes(node.getAttributes(), curTag);
 
-		currentTag.push(curTag);
-
-		nextLine.peek().setPadding(currentLine.peek().getPadding() + curTag.getPadding());
-
-		// flush text before display: block elements
-		if (curTag.getDisplay() == Display.BLOCK) {
-			if (!writeLine(false)) {
-				int marginBefore = cleanTextLines.get(0).isEmpty()
-					? 0
-					: Math.max(currentLine.peek().getMarginBefore(), curTag.getMarginBefore());
-
-				currentLine.peek().setMarginBefore(marginBefore);
-				currentLine.peek().setPadding(nextLine.peek().getPadding());
-			} else {
-				currentLine.peek().setMarginAfter(Math.max(currentLine.peek().getMarginAfter(), curTag.getMarginAfter()));
-			}
-		}
+		tags.push(curTag);
 
 		switch (tag) {
 			case "table":
@@ -347,16 +240,17 @@ public class Inscriptis {
 	}
 
 	private void newline() {
-		writeLine(true);
+		tags.peek().getCanvas().writeNewline();
 	}
 
 	/**
-	 * Parses the HTML tree.
+	 * Parse the HTML tree.
 	 *
 	 * @param document the W3C document
 	 */
 	private void parseHtmlTree(Node node) {
 
+		// ignore comments
 		if (node.getNodeType() != Node.DOCUMENT_NODE &&
 			node.getNodeType() != Node.ELEMENT_NODE &&
 			node.getNodeType() != Node.TEXT_NODE) {
@@ -365,13 +259,13 @@ public class Inscriptis {
 
 		if (node.getNodeType() == Node.ELEMENT_NODE) {
 			handleStartTag(node);
+			HtmlElement curTag = tags.peek();
+			curTag.getCanvas().openTag(curTag);
 		}
 
 		if (node.getNodeType() == Node.TEXT_NODE) {
 			String text = node.getNodeValue();
-			if (text != null && !text.isEmpty()) {
-				handleData(text);
-			}
+			tags.peek().write(text);
 		}
 
 		NodeList children = node.getChildNodes();
@@ -381,6 +275,8 @@ public class Inscriptis {
 
 		if (node.getNodeType() == Node.ELEMENT_NODE) {
 			handleEndTag(node);
+			HtmlElement prevTag = tags.pop();
+			prevTag.getCanvas().closeTag(prevTag);
 		}
 	}
 
@@ -403,7 +299,7 @@ public class Inscriptis {
 		}
 
 		if (!linkTarget.isEmpty()) {
-			currentLine.peek().addContent("[");
+			tags.peek().write("[");
 		}
 	}
 
@@ -422,115 +318,58 @@ public class Inscriptis {
 		}
 
 		if (!imageText.isEmpty() && !(config.isDeduplicateCaptions() && imageText.equals(lastCaption))) {
-			currentLine.peek().addContent(String.format("[%s]", imageText));
+			tags.peek().write(String.format("[%s]", imageText));
 			lastCaption = imageText;
 		}
 	}
 
 	private void startLi() {
 
-		writeLine(false);
-
-		Object bullet = liLevel > 0 ? liCounter.peek() : "* ";
+		Object bullet = !liCounter.isEmpty() ? liCounter.peek() : "* ";
 
 		if (bullet instanceof Integer) {
 			Integer bulletNumber = (Integer) liCounter.pop();
 			liCounter.push(bulletNumber + 1);
-			currentLine.peek().setListBullet(bulletNumber + ". ");
+			tags.peek().listBullet(bulletNumber + ". ");
 		} else {
-			currentLine.peek().setListBullet(bullet.toString());
+			tags.peek().listBullet(bullet.toString());
 		}
+
+		tags.peek().write("");
 	}
 
 	private void startOl() {
-
 		liCounter.push(1);
-		liLevel++;
 	}
 
 	private void startTable() {
+
+		tags.peek().canvas(new Canvas());
 		currentTable.push(new Table());
 	}
 
 	private void startTd() {
 
-		if (currentTable.isEmpty()) {
-			return;
+		if (!currentTable.isEmpty()) {
+			Table curTable = currentTable.peek();
+
+			// open td tag
+			HtmlElement curTag = tags.peek();
+			TableCell tableCell = new TableCell(curTag.getAlign(), curTag.getValign());
+			curTag.canvas(tableCell);
+			curTable.addCell(tableCell);
 		}
-
-		Table curTable = currentTable.peek();
-
-		// check whether we need to cleanup a <td> tag that has not been closed yet
-		if (curTable.isTdOpen()) {
-			endTd();
-		}
-
-		// open td tag
-		cleanTextLines.push(new ArrayList<>());
-		currentLine.push(new Line());
-		nextLine.push(new Line());
-
-		curTable.addCell(
-			cleanTextLines.peek(),
-			currentTag.peek().getAlign(),
-			currentTag.peek().getValign());
-
-		curTable.setTdOpen(true);
 	}
 
 	private void startTr() {
 
-		if (currentTable.isEmpty()) {
-			return;
+		if (!currentTable.isEmpty()) {
+			currentTable.peek().addRow();
 		}
-
-		Table curTable = currentTable.peek();
-
-		// check whether we need to cleanup a <td> tag that has not been closed yet
-		if (curTable.isTdOpen()) {
-			endTd();
-		}
-
-		curTable.addRow();
 	}
 
 	private void startUl() {
-
-		liLevel++;
-		liCounter.push(getBullet(liLevel - 1));
-	}
-
-	/**
-	 * Writes the current line to the buffer, provided that there is any data to write.
-	 *
-	 * @param force if true, data will be written even if it's empty.
-	 * @return {@code true}, if a line has been written, otherwise {@code false}.
-	 */
-	private boolean writeLine(boolean force) {
-
-		// only write the line if it contains relevant content
-		if (!force && StringUtils.isBlank(currentLine.peek().getContent())) {
-			currentLine.peek().setMarginBefore(Math.max(currentLine.peek().getMarginBefore(), currentTag.peek().getMarginBefore()));
-			return false;
-		}
-
-		String line = currentLine.peek().getText();
-		cleanTextLines.peek().add(line);
-
-		currentLine.pop();
-		currentLine.push(nextLine.pop());
-		nextLine.push(new Line());
-
-		return true;
-	}
-
-	/**
-	 * Writes the current buffer without any modifications.
-	 *
-	 * @param text the text to write.
-	 */
-	private void writeLineVerbatim(String text) {
-		cleanTextLines.peek().add(text);
+		liCounter.push(getBullet());
 	}
 
 }

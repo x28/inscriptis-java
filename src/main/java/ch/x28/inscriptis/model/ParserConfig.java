@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.x28.inscriptis;
+package ch.x28.inscriptis.model;
+
+import ch.x28.inscriptis.CssProfile;
 
 /**
  * The ParserConfig object encapsulates configuration options and custom CSS definitions used by inscriptis for
@@ -32,19 +34,19 @@ public class ParserConfig {
 	private boolean displayAnchors = false;
 
 	/**
-	 * Creates a new parser configuration with {@link CssProfile#RELAXED}.
+	 * Creates a new parser configuration with {@link CssProfile#relaxed}.
 	 */
 	public ParserConfig() {
-		css = CssProfile.RELAXED;
+		this.css = CssProfile.relaxed();
 	}
 
 	/**
 	 * Creates a new parser configuration with the given {@link CssProfile}.
 	 *
-	 * @param cssProfile an custom CSS definition, otherwise {@link CssProfile#RELAXED}.
+	 * @param cssProfile a custom CSS definition, otherwise {@link CssProfile#relaxed}.
 	 */
 	public ParserConfig(CssProfile cssProfile) {
-		css = cssProfile;
+		this.css = cssProfile;
 	}
 
 	/**

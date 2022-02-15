@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.x28.inscriptis;
+package ch.x28.inscriptis.model;
 
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+import ch.x28.inscriptis.CssProfile;
 import ch.x28.inscriptis.HtmlProperties.Display;
 import ch.x28.inscriptis.HtmlProperties.HorizontalAlignment;
 import ch.x28.inscriptis.HtmlProperties.VerticalAlignment;
@@ -34,14 +35,14 @@ public class CssParseTest {
 	public void testDisplayBlockWithPadding() {
 
 		// given
-		CssProfile css = CssProfile.STRICT;
-		HtmlElement htmlElement = css.get("div");
+		CssProfile css = CssProfile.strict();
+		HtmlElement htmlElement = css.get("div").clone();
 
 		// when
 		CssParse.attrStyle("padding-left: 8px; display: block", htmlElement);
 
 		// then
-		assertThat(htmlElement.getPadding()).isEqualTo(1);
+		assertThat(htmlElement.getPaddingInline()).isEqualTo(1);
 		assertThat(htmlElement.getDisplay()).isEqualTo(Display.BLOCK);
 	}
 
@@ -49,8 +50,8 @@ public class CssParseTest {
 	public void testDisplayInlineWithMarginBefore() {
 
 		// given
-		CssProfile css = CssProfile.STRICT;
-		HtmlElement htmlElement = css.get("div");
+		CssProfile css = CssProfile.strict();
+		HtmlElement htmlElement = css.get("div").clone();
 
 		// when
 		CssParse.attrStyle("margin-top: 8em; display: inline", htmlElement);
@@ -78,8 +79,9 @@ public class CssParseTest {
 	public void testParseInvalidHorizontalAlign() {
 
 		// given
-		HtmlElement htmlElement = new HtmlElement();
-		htmlElement.align(HorizontalAlignment.CENTER);
+		HtmlElement htmlElement = new HtmlElement()
+			.align(HorizontalAlignment.CENTER);
+
 		String invalidValue = "unknown";
 
 		// when
@@ -93,8 +95,9 @@ public class CssParseTest {
 	public void testParseInvalidVerticalAlign() {
 
 		// given
-		HtmlElement htmlElement = new HtmlElement();
-		htmlElement.valign(VerticalAlignment.TOP);
+		HtmlElement htmlElement = new HtmlElement()
+			.valign(VerticalAlignment.TOP);
+
 		String invalidValue = "unknown";
 
 		// when

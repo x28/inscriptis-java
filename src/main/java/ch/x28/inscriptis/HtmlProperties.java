@@ -16,85 +16,82 @@
 package ch.x28.inscriptis;
 
 /**
+ * Provide properties used for rendering HTML pages.
+ *
  * @author Sascha Wolski
  * @author Matthias Hewelt
  * @author Manuel Schmidt
  */
-class HtmlProperties {
+public class HtmlProperties {
 
 	/**
-	 * This enum specifies whether content will be rendered as inline, block or none (i.e. not rendered).
+	 * Specify whether content will be rendered as inline, block or none.
+	 * <dl>
+	 * <dt>Note:</dt>
+	 * <dd>A display attribute on none indicates, that the content should not be rendered at all.</dd>
+	 * </dl>
 	 */
 	public enum Display {
-
-		INLINE(1),
-		BLOCK(2),
-		NONE(3);
-
-		private final int value;
-
-		private Display(int value) {
-			this.value = value;
-		}
-
-		public int getValue() {
-			return value;
-		}
-
+		INLINE,
+		BLOCK,
+		NONE
 	}
 
 	/**
-	 * This enum specifies the horizontal alignment.
+	 * Specify the content's horizontal alignment.
 	 */
 	public enum HorizontalAlignment {
 
-		LEFT('<'),
-		RIGHT('>'),
-		CENTER('^');
-
-		private final char value;
-
-		private HorizontalAlignment(char value) {
-			this.value = value;
-		}
-
-		public char getValue() {
-			return value;
-		}
+		/**
+		 * Left alignment of the block's content.
+		 */
+		LEFT,
+		/**
+		 * Right alignment of the block's content.
+		 */
+		RIGHT,
+		/**
+		 * Center the block's content.
+		 */
+		CENTER;
 
 	}
 
 	/**
-	 * This enum specifies the vertical alignment.
+	 * Specify the content's vertical alignment.
 	 */
 	public enum VerticalAlignment {
 
-		TOP(1),
-		MIDDLE(2),
-		BOTTOM(3);
-
-		private final int value;
-
-		private VerticalAlignment(int value) {
-			this.value = value;
-		}
-
-		public int getValue() {
-			return value;
-		}
+		/**
+		 * Align all content at the top.
+		 */
+		TOP,
+		/**
+		 * Align all content in the middle.
+		 */
+		MIDDLE,
+		/**
+		 * Align all content at the bottom.
+		 */
+		BOTTOM;
 
 	}
 
 	/**
-	 * This enum specifies the whitespace handling used for an HTML element as outlined in the Cascading Style Sheets
-	 * specification.
-	 *
-	 * @NORMAL Sequences of whitespaces will be collapsed into a single one.
-	 * @PRE Sequences of whitespaces will preserved.
+	 * Specify the HTML element's whitespace handling.
+	 * <p>
+	 * Inscriptis supports the following handling strategies outlined in the
+	 * <a href="https://www.w3.org/TR/CSS1/">Cascading Style Sheets</a> specification.
 	 */
 	public enum WhiteSpace {
 
+		/**
+		 * Collapse multiple whitespaces into a single one.
+		 */
 		NORMAL(1),
+		/**
+		 * Collapse multiple whitespaces into a single one.
+		 */
 		PRE(3);
 
 		private final int value;

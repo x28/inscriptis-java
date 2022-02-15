@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ch.x28.inscriptis;
+package ch.x28.inscriptis.model;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +24,7 @@ import ch.x28.inscriptis.HtmlProperties.Display;
 import ch.x28.inscriptis.HtmlProperties.HorizontalAlignment;
 import ch.x28.inscriptis.HtmlProperties.VerticalAlignment;
 import ch.x28.inscriptis.HtmlProperties.WhiteSpace;
+import ch.x28.inscriptis.StringUtils;
 
 /**
  * Parses CSS specifications and translates them into the corresponding HtmlElements used by Inscriptis for rendering
@@ -33,7 +34,7 @@ import ch.x28.inscriptis.HtmlProperties.WhiteSpace;
  * @author Matthias Hewelt
  * @author Manuel Schmidt
  */
-class CssParse {
+public class CssParse {
 
 	// used to separate value and unit from each other
 	private static final Pattern RE_UNIT = Pattern.compile("(-?[0-9.]+)(\\w+)");
@@ -50,7 +51,7 @@ class CssParse {
 	 */
 	static void attrDisplay(String value, HtmlElement htmlElement) {
 
-		if (htmlElement.getDisplay() == Display.NONE) {
+		if (htmlElement.has(Display.NONE)) {
 			return;
 		}
 
@@ -96,11 +97,11 @@ class CssParse {
 	 * Apply the given left padding.
 	 */
 	static void attrPaddingLeft(String value, HtmlElement htmlElement) {
-		htmlElement.padding(getEm(value));
+		htmlElement.paddingInline(getEm(value));
 	}
 
 	/**
-	 * Applies the provided style attributes to the given html element.
+	 * Apply the provided style attributes to the given html element.
 	 *
 	 * @param styleAttribute the attribute value of the given style sheet. Example: display: none
 	 * @param htmlElement the HtmlElement to which the given style is applied.
