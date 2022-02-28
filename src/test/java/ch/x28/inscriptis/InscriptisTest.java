@@ -17,24 +17,17 @@ package ch.x28.inscriptis;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.jsoup.Jsoup;
 import org.jsoup.helper.W3CDom;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.w3c.dom.Document;
 
 /**
  * @author Sascha Wolski
  * @author Matthias Hewelt
+ * @author Manuel Schmidt
  */
 public class InscriptisTest {
 
@@ -252,36 +245,22 @@ public class InscriptisTest {
 		assertThat(getText(html)).isEqualTo("hallo\n1  2\n3  4\necho");
 	}
 
-	@Test
-	public void testHtmlSnippets() throws IOException, URISyntaxException {
+	@ParameterizedTest
+	@MethodSource("ch.x28.inscriptis.HtmlSnippets#getTextNames")
+	public void testHtmlSnippets(String name) {
 
 		// given
-		Path path = Paths.get(getClass().getClassLoader().getResource("snippets").toURI());
+		String htmlContent = HtmlSnippets.getHtmlContent(name);
+		String textContent = HtmlSnippets.getTextContent(name);
+		htmlContent = "<html><body>" + htmlContent + "</body></html>";
+		textContent = StringUtils.stripTrailing(textContent);
 
-		Set<Path> textFiles;
-		try (Stream<Path> stream = Files.walk(path)) {
-			textFiles = stream
-				.filter(file -> !Files.isDirectory(file))
-				.filter(file -> file.getFileName().toString().endsWith(".txt"))
-				.collect(Collectors.toSet());
-		}
+		// when
+		ParserConfig config = new ParserConfig(CssProfile.STRICT);
+		String result = getText(htmlContent, config);
 
-		for (Path textFile : textFiles) {
-			String text = new String(Files.readAllBytes(textFile), StandardCharsets.UTF_8);
-			String html = new String(Files.readAllBytes(Paths.get(textFile.toString().replace(".txt", ".html"))), StandardCharsets.UTF_8);
-
-			text = StringUtils.stripTrailing(text);
-			html = "<html><body>" + html + "</body></html>";
-
-			// when
-			ParserConfig config = new ParserConfig(CssProfile.STRICT);
-			String result = getText(html, config);
-
-			// then
-			assertThat(result)
-				.as(textFile.getFileName().toString())
-				.isEqualTo(text);
-		}
+		// then
+		assertThat(result).isEqualTo(textContent);
 	}
 
 	@Test
