@@ -17,8 +17,6 @@ package ch.x28.inscriptis;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.jsoup.Jsoup;
-import org.jsoup.helper.W3CDom;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -52,13 +50,7 @@ public class InscriptisTest {
 	 */
 	private static String getText(String htmlContent, ParserConfig config) {
 
-		if (StringUtils.isBlank(htmlContent)) {
-			return "";
-		}
-
-		htmlContent = htmlContent.trim();
-
-		Document document = W3CDom.convert(Jsoup.parse(htmlContent));
+		Document document = DocumentParser.parse(htmlContent);
 		Inscriptis inscriptis = new Inscriptis(document, config);
 
 		return inscriptis.getText();
@@ -281,7 +273,7 @@ public class InscriptisTest {
 		String text = getText(html);
 
 		//then
-		assertThat(text).isEqualTo("hallo echo\ndef hallo():\n   print(\"echo\")"); // not equal to python version
+		assertThat(text).isEqualTo("hallo echo\n\ndef hallo():\n   print(\"echo\")");
 	}
 
 	@Test
