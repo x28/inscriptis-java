@@ -153,7 +153,7 @@ public class StringUtils {
 	 *
 	 * @param str the string value to be repeated several times.
 	 * @param repetitions how many times the string should be repeated.
-	 * @return A new string consisting of {@code repetitions} times the value of {@code str<}. Return null if the
+	 * @return A new string consisting of {@code repetitions} times the value of {@code str}. Return null if the
 	 *         provided string is null. Return an empty string if the provided string is empty or repetitions is less
 	 *         than 1.
 	 */
