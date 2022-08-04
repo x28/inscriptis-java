@@ -31,9 +31,15 @@ public class Table {
 	 * the table's rows.
 	 */
 	private final Stack<TableRow> rows;
+	/**
+	 * the string used for separating cells from each other.
+	 */
+	private String cellSeparator;
 
-	public Table() {
+	public Table(String cellSeparator) {
+
 		this.rows = new Stack<>();
+		this.cellSeparator = cellSeparator;
 	}
 
 	/**
@@ -48,7 +54,7 @@ public class Table {
 	public void addCell(TableCell tableCell) {
 
 		if (rows.isEmpty()) {
-			rows.add(new TableRow());
+			rows.add(new TableRow(cellSeparator));
 		}
 		rows.peek().getColumns().add(tableCell);
 	}
@@ -57,7 +63,7 @@ public class Table {
 	 * Add an empty Row to the table.
 	 */
 	public void addRow() {
-		rows.add(new TableRow());
+		rows.add(new TableRow(cellSeparator));
 	}
 
 	/**

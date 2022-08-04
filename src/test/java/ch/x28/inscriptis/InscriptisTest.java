@@ -798,6 +798,40 @@ public class InscriptisTest {
 	}
 
 	@Nested
+	public class TableTest {
+
+		@Test
+		public void testCellSeparator() {
+
+			// given
+			String html = "<html><body><table><tr><td>Hallo<br>Eins</td><td>Echo<br>Zwei</td></tr></table></html>";
+
+			ParserConfig config = new ParserConfig();
+			config.setTableCellSeparator("\t");
+
+			// when
+			String text = getText(html, config);
+
+			// then
+			assertThat(text).isEqualTo("Hallo\tEcho\nEins \tZwei\n");
+		}
+
+		@Test
+		public void testCellSeparatorDefault() {
+
+			// given
+			String html = "<html><body><table><tr><td>Hallo<br>Eins</td><td>Echo<br>Zwei</td></tr></table></html>";
+
+			// when
+			String text = getText(html);
+
+			// then
+			assertThat(text).isEqualTo("Hallo  Echo\nEins   Zwei\n");
+		}
+
+	}
+
+	@Nested
 	public class WhiteSpaceTest {
 
 		@Test

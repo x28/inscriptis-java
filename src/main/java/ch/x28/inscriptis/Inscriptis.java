@@ -345,7 +345,7 @@ public class Inscriptis {
 	private void startTable() {
 
 		tags.peek().canvas(new Canvas());
-		currentTable.push(new Table());
+		currentTable.push(new Table(config.getTableCellSeparator()));
 	}
 
 	private void startTd() {

@@ -30,10 +30,6 @@ public class TableRow {
 	private final Stack<TableCell> columns;
 	private final String cellSeparator;
 
-	public TableRow() {
-		this("  ");
-	}
-
 	public TableRow(String cellSeparator) {
 
 		this.columns = new Stack<>();

@@ -229,7 +229,7 @@ public class TableTest {
 
 			// given
 			// when
-			TableRow row = new TableRow();
+			TableRow row = new TableRow("   ");
 
 			// then
 			assertThat(row.getWidth()).isZero();

@@ -32,6 +32,7 @@ public class ParserConfig {
 	private boolean deduplicateCaptions = false;
 	private boolean displayLinks = false;
 	private boolean displayAnchors = false;
+	private String tableCellSeparator = "  ";
 
 	/**
 	 * Creates a new parser configuration with {@link CssProfile#relaxed}.
@@ -56,6 +57,15 @@ public class ParserConfig {
 	 */
 	public CssProfile getCss() {
 		return css;
+	}
+
+	/**
+	 * Return the separator to use between table cells.
+	 *
+	 * @return the separator to use between table cells.
+	 */
+	public String getTableCellSeparator() {
+		return tableCellSeparator;
 	}
 
 	/**
@@ -133,6 +143,15 @@ public class ParserConfig {
 	 */
 	public void setDisplayLinks(boolean displayLinks) {
 		this.displayLinks = displayLinks;
+	}
+
+	/**
+	 * Set the separator to use between table cells.
+	 *
+	 * @param tableCellSeparator the separator to use between table cells.
+	 */
+	public void setTableCellSeparator(String tableCellSeparator) {
+		this.tableCellSeparator = tableCellSeparator;
 	}
 
 }
